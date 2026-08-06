@@ -1,0 +1,45 @@
+# CNN Pipeline Configuration
+
+# List of target instruments for the CNN baseline classifier
+train_labels:
+  - sheng
+  - dizi
+  - erhu
+  - pipa
+  - suona
+  - guzheng
+  - yangqin
+  - percussion
+  - strings
+  - woodwind
+  - brass
+  - nonmusic
+
+audio:
+  sample_rate: 44100
+  duration_sec: 3.0
+  # CQT specific parameters
+  cqt:
+    fmin: 32.7
+    n_bins: 84
+    bins_per_octave: 12
+
+training:
+  batch_size: 32
+  epochs: 50
+  learning_rate: 0.0001
+  num_workers: 4
+  early_stopping_patience: 10
+
+augmentation:
+  spec_augment: false
+  minority_only: true
+
+degradation:
+  enabled: true
+  probability: 0.5  # 50% chance to degrade an audio clip during training
+  sample_rate: 44100
+
+paths:
+  data_dir: "data/train"
+  models_dir: "models"
