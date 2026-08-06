@@ -57,6 +57,14 @@ To run sliding-window inference on a continuous audio file using the trained CNN
 python scripts/cnn_pipeline.py path/to/your/legacy_film.wav
 ```
 
+### Graphical User Interface (GUI)
+
+You can launch a professional desktop application with a drag-and-drop interface, waveform visualizer, and results table to run sliding window inference visually!
+
+```bash
+make gui
+```
+
 ### Instruments in Focus
 
 train_labels:

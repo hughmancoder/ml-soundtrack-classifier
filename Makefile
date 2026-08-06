@@ -1,4 +1,4 @@
-.PHONY: train-cnn cnn-pipeline summarize-data debug-samples slice-chmusic slice-nonmusic clean help
+.PHONY: train-cnn cnn-pipeline gui summarize-data debug-samples slice-chmusic slice-nonmusic splice-movie clean help
 
 help:
 	@echo "Soundtrack Classifier CNN Makefile"
@@ -10,6 +10,7 @@ help:
 	@echo "  make slice-nonmusic       Partition and slice movie nonmusic clips"
 	@echo "  make train-cnn            Train the ResNet-18 baseline CNN"
 	@echo "  make cnn-pipeline input=...  Run sliding window inference on a film audio file"
+	@echo "  make gui                  Launch the desktop GUI app for drag-and-drop inference"
 	@echo "  make clean                Clean up Python cache files"
 
 summarize-data:
@@ -28,6 +29,11 @@ slice-nonmusic:
 	@echo "Slicing nonmusic clips from movie annotations..."
 	PYTHONPATH=src python scripts/slice_nonmusic.py
 
+splice-movie:
+	@echo "Splicing film video into 15-minute MP4 clips..."
+	PYTHONPATH=src python scripts/splice_movie.py
+
+
 train-cnn:
 	@echo "Starting CNN training pipeline..."
 	PYTHONPATH=src python scripts/train_cnn.py
@@ -38,6 +44,10 @@ cnn-pipeline:
 	@endif
 	@echo "Starting sliding window inference on $(input)..."
 	PYTHONPATH=src python scripts/cnn_pipeline.py "$(input)"
+
+gui:
+	@echo "Launching Desktop GUI application..."
+	PYTHONPATH=src python scripts/gui.py
 
 clean:
 	@echo "Cleaning up __pycache__ directories..."
