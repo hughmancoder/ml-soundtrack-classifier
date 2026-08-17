@@ -41,3 +41,15 @@ Finally, a duration-based safety threshold is applied. The total duration of a m
 ### Graphical User Interface (GUI) Engineering
 
 To render this complex computational pipeline usable, the system is packaged into a web-based Graphical User Interface (GUI) powered by **Gradio**. This allows human operators to easily drag and drop audio files, visualize the waveform dynamically, and generate downloadable timestamp tables in a completely non-technical, browser-based environment.
+
+
+## Improvements for transient detection (TODO):
+
+librosa.onset.onset_detect to mathematically scan the hour-long track in just a few seconds and grab the exact timestamps of every single drum hit. Then, you only send those specific micro-clips to the CNN to ask, "What kind of percussion was this?" while using your normal 3-second sliding window for the rest of the movie.
+
+- The Melody Stream: Window = 3.0s, Stride = 1.0s, Heavy Mode Filtering. (Catches all the flutes and strings). (Implemented)
+
+- The Transient Stream: Window = 0.5s, Stride = 0.1s, No Filtering. (Catches all the percussion and sound effects). When both streams finish, you mathematically merge their tables together. This is highly accurate, but it means your model has to do twice the computational work (TODO)
+
+
+
