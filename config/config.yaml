@@ -29,7 +29,7 @@ training:
   epochs: 50
   learning_rate: 0.0001
   num_workers: 4
-  early_stopping_patience: 10
+  early_stopping_patience: 5
 
 augmentation:
   spec_augment: false

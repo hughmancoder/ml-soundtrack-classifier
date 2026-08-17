@@ -26,6 +26,11 @@ def run_sliding_window_inference(
     window_samples = int(window_sec * sr)
     stride_samples = int(stride_sec * sr)
     
+    # Pad audio if it's shorter than the minimum window size
+    if len(audio) < window_samples:
+        padding = window_samples - len(audio)
+        audio = np.pad(audio, (0, padding), 'constant')
+    
     cqt = CQT1992v2(sr=sr, fmin=32.7, n_bins=84, bins_per_octave=12).to(device)
     
     raw_predictions = []
@@ -97,7 +102,8 @@ def _apply_post_processing(
     
     for i in range(1, len(smoothed_preds)):
         if smoothed_preds[i] != current_label:
-            end_time = timestamps_sec[i-1] + window_sec
+            # Use the start of the next window as the exact boundary to prevent overlapping events
+            end_time = timestamps_sec[i]
             
             # 4. Heuristic Duration Thresholding: Must be >= 1.0s and not be pure silence (-1)
             if (end_time - start_time) >= 1.0 and current_label != -1:

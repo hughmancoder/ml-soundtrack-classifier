@@ -38,6 +38,10 @@ train-cnn:
 	@echo "Starting CNN training pipeline..."
 	PYTHONPATH=src python scripts/train_cnn.py
 
+resume-cnn:
+	@echo "Resuming CNN training from models/resnet18_cnn.pt..."
+	PYTHONPATH=src python scripts/train_cnn.py --resume models/resnet18_cnn.pt
+
 cnn-pipeline:
 	@ifndef input
 	$(error input is not set. Usage: make cnn-pipeline input="path/to/audio.wav")
@@ -47,7 +51,18 @@ cnn-pipeline:
 
 gui:
 	@echo "Launching Desktop GUI application..."
-	PYTHONPATH=src python scripts/gui.py
+	PYTHONPATH=src python src/soundtrack_classifier/gui.py
+
+metrics ?= models/training_metrics.csv
+output ?= models/training_curves.png
+
+plot-curves:
+	@echo "Plotting training curves from $(metrics)..."
+	PYTHONPATH=src python scripts/plot_training_curves.py --metrics "$(metrics)" --output "$(output)"
+
+evaluate-models:
+	@echo "Evaluating multiple model checkpoints..."
+	PYTHONPATH=src python scripts/evaluate_models.py
 
 clean:
 	@echo "Cleaning up __pycache__ directories..."

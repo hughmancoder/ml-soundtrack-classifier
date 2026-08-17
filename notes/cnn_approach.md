@@ -28,4 +28,15 @@ Because the MVP uses a classifier rather than a specialized Sound Event Detectio
 - **The Sliding Window Technique**: During film analysis, a script slides a 3-second window across the continuous film audio track using a 1-second stride (e.g., 0–3s, 1–4s, 2–5s).
 - **Post-Processing**: The CNN predicts the dominant instrument for each 3-second slice. A simple algorithmic rule merges consecutive identical predictions into a continuous timestamp (e.g., `[Erhu, Erhu, Erhu]` becomes `Erhu active: 0.0s - 5.0s`). Median filtering can be applied to smooth out single-frame misclassifications.
 
-notes/mvp.md
+## 6. Training Pipeline Details (`train_cnn.py`)
+- **Dataset Split**: Automatically performs an 80/20 train/validation split using `torch.utils.data.random_split` with a fixed seed for reproducibility.
+- **Model Used**: `ResNet18Classifier` (a standard lightweight ResNet-18).
+- **Handling Class Imbalance**: Calculates dynamic class weights based on the training split's distribution. These weights are passed to `nn.CrossEntropyLoss`, forcing the model to heavily penalize errors on underrepresented instruments.
+- **Augmentation**: Applies `SpecAugment` (time and frequency masking) selectively to minority classes directly on the GPU.
+- **Checkpointing & Early Stopping**: Tracks validation accuracy after every epoch. The model state is saved to `models/resnet18_cnn.pt` only if validation accuracy improves. Early stopping halts training if no improvement is seen for a set number of epochs (default 10).
+- **Training Curves**: Currently, it logs training and validation loss/accuracy to the standard console output. It does *not* presently export visual curves (e.g., TensorBoard or Weights & Biases), though `wandb` could be integrated in the future for real-time visualization.
+
+## Hardware for training
+
+Apple M4
+Memory: 16gb

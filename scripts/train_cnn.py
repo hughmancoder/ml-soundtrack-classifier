@@ -26,6 +26,7 @@ from torch.utils.data import DataLoader, random_split
 from nnAudio.features.cqt import CQT1992v2
 from soundtrack_classifier.cnn.dataset import SoundtrackCNNDataset
 from soundtrack_classifier.cnn.resnet import ResNet18Classifier
+import csv
 
 def load_config(config_path="config/config.yaml"):
     with open(config_path, "r") as f:
@@ -102,28 +103,44 @@ def train(resume_checkpoint=None):
     ).to(device)
 
     model = ResNet18Classifier(num_classes=len(train_labels)).to(device)
+    optimizer = torch.optim.Adam(model.parameters(), lr=config['training']['learning_rate'])
+    criterion = nn.CrossEntropyLoss(weight=weights_tensor)
+    
+    start_epoch = 0
+    best_val_acc = 0.0
+    epochs_no_improve = 0
     
     if resume_checkpoint and os.path.exists(resume_checkpoint):
         print(f"Resuming training from {resume_checkpoint}...")
         checkpoint = torch.load(resume_checkpoint, map_location=device, weights_only=False)
         if isinstance(checkpoint, dict) and 'state_dict' in checkpoint:
             model.load_state_dict(checkpoint['state_dict'])
+            if 'optimizer_state_dict' in checkpoint:
+                optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+            if 'epoch' in checkpoint:
+                start_epoch = checkpoint['epoch'] + 1
+            if 'best_val_acc' in checkpoint:
+                best_val_acc = checkpoint['best_val_acc']
         else:
             model.load_state_dict(checkpoint)
-    
-    criterion = nn.CrossEntropyLoss(weight=weights_tensor)
-    optimizer = torch.optim.Adam(model.parameters(), lr=config['training']['learning_rate'])
 
     # 4. Training Loop
     epochs = config['training']['epochs']
     patience = config['training'].get('early_stopping_patience', 10)
     
-    best_val_acc = 0.0
-    epochs_no_improve = 0
     save_path = os.path.join(config['paths']['models_dir'], "resnet18_cnn.pt")
+    metrics_path = os.path.join(config['paths']['models_dir'], "training_metrics.csv")
     os.makedirs(config['paths']['models_dir'], exist_ok=True)
     
-    for epoch in range(epochs):
+    # Initialize CSV metrics file (Append if resuming, overwrite if fresh start)
+    is_resuming = resume_checkpoint and os.path.exists(resume_checkpoint)
+    mode = 'a' if is_resuming and os.path.exists(metrics_path) else 'w'
+    with open(metrics_path, mode=mode, newline='') as f:
+        writer = csv.writer(f)
+        if mode == 'w':
+            writer.writerow(["epoch", "train_loss", "val_loss", "val_acc"])
+    
+    for epoch in range(start_epoch, epochs):
         # 4a. Training Phase
         model.train()
         running_loss = 0.0
@@ -197,6 +214,11 @@ def train(resume_checkpoint=None):
         print(f"--- Epoch {epoch+1} Complete ---")
         print(f"Train Loss: {avg_train_loss:.4f} | Val Loss: {avg_val_loss:.4f} | Val Acc: {val_acc:.2f}%")
         
+        # Save metrics to CSV
+        with open(metrics_path, mode='a', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow([epoch + 1, avg_train_loss, avg_val_loss, val_acc])
+
         # Save Best Model Checkpoint
         if val_acc > best_val_acc:
             print(f"Validation accuracy improved ({best_val_acc:.2f}% -> {val_acc:.2f}%). Saving checkpoint...")
@@ -204,7 +226,10 @@ def train(resume_checkpoint=None):
             epochs_no_improve = 0
             checkpoint = {
                 'state_dict': model.state_dict(),
-                'classes': train_labels
+                'classes': train_labels,
+                'optimizer_state_dict': optimizer.state_dict(),
+                'epoch': epoch,
+                'best_val_acc': best_val_acc
             }
             torch.save(checkpoint, save_path)
         else:

@@ -1,6 +1,11 @@
 # ML Soundtrack Classifier
 
-An End-to-End ML Pipeline for Soundtrack Annotation that combines Music Source Separation (MSS) with Sound Event Detection (SED) to classify and localize traditional instruments in film audio.
+An End-to-End ML Pipeline for Soundtrack Annotation with to classify and localize traditional chinese and western instruments in early film audio for film analysis. 
+
+Focus films
+- Come drink with me
+- A touch of zen
+- Dragon Inn
 
 ## Installation
 
@@ -12,8 +17,8 @@ An End-to-End ML Pipeline for Soundtrack Annotation that combines Music Source S
 
 2. (Optional but recommended) Create a virtual environment:
    ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+   python -m venv .venv
+   source .venv/bin/activate  # On Windows use `.venv\Scripts\activate`
    ```
 
 3. Install the dependencies:
@@ -67,6 +72,8 @@ make gui
 
 ### Instruments in Focus
 
+[training dataset README](data/train/README.md)
+
 train_labels:
   - sheng
   - dizi
@@ -80,8 +87,4 @@ train_labels:
   - woodwind  
   - brass 
 
-  ### Datasets
 
-  ChMusic
-  MUSDB18
-  MedleyDB-Instruments
