@@ -20,7 +20,8 @@ audio:
   duration_sec: 3.0
   # CQT specific parameters
   cqt:
-    fmin: 32.7
+    fmin: 65
+    fmax: 
     n_bins: 84
     bins_per_octave: 12
 
@@ -37,7 +38,7 @@ augmentation:
 
 degradation:
   enabled: true
-  probability: 0.5  # 50% chance to degrade an audio clip during training
+  probability: 80  # 50% chance to degrade an audio clip during training
   sample_rate: 44100
 
 paths:
