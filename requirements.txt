@@ -27,6 +27,7 @@ yt-dlp>=2024.0.0
 # Testing
 pytest>=7.3.2
 pyyaml>=6.0.1
+hjson>=3.1.0
 
 pedalboard>=0.9.8
 matplotlib>=3.7.0

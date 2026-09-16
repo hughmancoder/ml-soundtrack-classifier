@@ -121,7 +121,14 @@ class ArchivalInstrumentCRNN(nn.Module):
             hpss_specs = specs.unsqueeze(1) # (B, 1, F, T)
             
         # Logarithmic compression
-        return torch.log1p(10.0 * hpss_specs)
+        features = torch.log1p(10.0 * hpss_specs)
+        
+        # Feature Standardisation (Instance z-score per channel)
+        f_mean = features.mean(dim=(-2, -1), keepdim=True)
+        f_std = features.std(dim=(-2, -1), keepdim=True).clamp(min=1e-5)
+        features = (features - f_mean) / f_std
+        
+        return features
 
     def forward(self, x: torch.Tensor, return_frames: bool = False) -> torch.Tensor:
         """

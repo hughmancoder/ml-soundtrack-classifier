@@ -32,6 +32,13 @@ def compute_hpss_from_spec(
         was_2d = True
         spec = spec.unsqueeze(0)
 
+    orig_device = spec.device
+    # PyTorch MPS does not have an optimized kernel for strided 4D unfold median,
+    # causing severe execution latency (~20x slower than CPU).
+    # Performing the 1D median filters on CPU avoids MPS kernel thrashing.
+    if orig_device.type == "mps":
+        spec = spec.cpu()
+
     B, F, T = spec.shape
     kt = min(kernel_time, T if T % 2 != 0 else max(1, T - 1))
     kf = min(kernel_freq, F if F % 2 != 0 else max(1, F - 1))
@@ -63,6 +70,8 @@ def compute_hpss_from_spec(
     mask_P = P_pow / total
 
     out = torch.stack([spec * mask_H, spec * mask_P], dim=1)
+    if orig_device.type == "mps":
+        out = out.to(orig_device)
     return out.squeeze(0) if was_2d else out
 
 

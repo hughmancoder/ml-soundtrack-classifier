@@ -15,8 +15,9 @@ import time
 import argparse
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Set, Tuple, Any
+from typing import Dict, List, Set, Tuple, Any, Optional
 
+import yaml
 import torch
 import numpy as np
 import soundfile as sf
@@ -24,6 +25,17 @@ import librosa
 
 from soundtrack_classifier.rnn.rnn import ArchivalInstrumentCRNN
 from soundtrack_classifier.ingestion.audio_utils import extract_audio_from_video
+
+
+def load_config(config_path: str = "config/config.yaml") -> dict:
+    """Loads configuration from YAML file."""
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, "r", encoding="utf-8") as f:
+                return yaml.safe_load(f) or {}
+        except Exception:
+            pass
+    return {}
 
 
 def parse_timestamp(t_str: str) -> float:
@@ -139,25 +151,44 @@ def run_crnn_evaluation(
     cuesheet_path: str,
     mapping_path: str,
     output_path: str,
-    window_sec: float = 8.0,
-    stride_sec: float = 2.0,
-    batch_size: int = 64,
-    rms_threshold: float = 0.001,
-    sr: int = 22050,
-    device_str: str = None,
+    window_sec: Optional[float] = None,
+    stride_sec: Optional[float] = None,
+    batch_size: Optional[int] = None,
+    rms_threshold: Optional[float] = None,
+    sr: Optional[int] = None,
+    device_str: Optional[str] = None,
     save_all_windows: bool = False
 ) -> Dict[str, Any]:
     """
     Executes batched sliding-window inference with ArchivalInstrumentCRNN
     and evaluates against cue sheet annotations.
+    Parameters default to config.yaml settings if not specified.
     """
     start_run_time = time.time()
+    
+    # Load configuration defaults
+    cfg = load_config()
+    crnn_cfg = cfg.get("crnn", {})
+    crnn_audio = crnn_cfg.get("audio", {})
+    crnn_inf = crnn_cfg.get("inference", {})
+
+    if sr is None:
+        sr = int(crnn_audio.get("sample_rate", 22050))
+    if window_sec is None:
+        window_sec = float(crnn_audio.get("window_sec", 10.0))
+    if stride_sec is None:
+        stride_sec = float(crnn_audio.get("hop_sec", 2.5))
+    if batch_size is None:
+        batch_size = int(crnn_inf.get("batch_size", 32))
+    if rms_threshold is None:
+        rms_threshold = float(crnn_inf.get("rms_threshold", 0.008))
     
     # 1. Device selection
     if device_str is None:
         device_str = "mps" if torch.backends.mps.is_available() else "cpu"
     device = torch.device(device_str)
     print(f"[*] Running CRNN Cue Sheet Evaluation on device: {device}")
+    print(f"[*] Evaluation parameters: window={window_sec}s, stride={stride_sec}s, sr={sr}Hz, rms_threshold={rms_threshold}, batch_size={batch_size}")
 
     # 2. Load instrument mapping
     if not os.path.exists(mapping_path):
@@ -253,7 +284,7 @@ def run_crnn_evaluation(
             
             with torch.no_grad():
                 logits = model(batch_tensor, return_frames=False)
-                probs = torch.softmax(logits, dim=1).cpu().numpy()
+                probs = torch.softmax(logits, dim=-1).cpu().numpy()
             
             for i, meta in enumerate(batch_meta):
                 p = probs[i]
@@ -479,8 +510,23 @@ def run_crnn_evaluation(
 
 
 def main():
+    cfg = load_config()
+    crnn_cfg = cfg.get("crnn", {})
+    crnn_audio = crnn_cfg.get("audio", {})
+    crnn_inf = crnn_cfg.get("inference", {})
+
+    default_sr = int(crnn_audio.get("sample_rate", 22050))
+    default_window_sec = float(crnn_audio.get("window_sec", 10.0))
+    default_stride_sec = float(crnn_audio.get("hop_sec", 2.5))
+    default_batch_size = int(crnn_inf.get("batch_size", 32))
+    default_rms_threshold = float(crnn_inf.get("rms_threshold", 0.008))
+
+    default_audio = "data/test/come-drink-with-me/Come Drink With Me.wav"
+    if not os.path.exists(default_audio):
+        default_audio = "data/raw/Come Drink With Me.mp4"
+
     parser = argparse.ArgumentParser(description="Evaluate CRNN model against cue sheet annotations")
-    parser.add_argument("--audio", type=str, default="data/raw/Come Drink With Me.mp4", help="Path to audio or video file")
+    parser.add_argument("--audio", type=str, default=default_audio, help=f"Path to audio or video file (default: {default_audio})")
     parser.add_argument("--model", type=str, default="models/crnn_best.pt", help="Model checkpoint path")
     parser.add_argument(
         "--cuesheet", 
@@ -500,11 +546,11 @@ def main():
         default="reports/inference_eval_crnn_come_drink_with_me.json", 
         help="Output JSON report path"
     )
-    parser.add_argument("--window-sec", type=float, default=8.0, help="Window duration in seconds")
-    parser.add_argument("--stride-sec", type=float, default=2.0, help="Stride duration in seconds")
-    parser.add_argument("--batch-size", type=int, default=64, help="Inference batch size")
-    parser.add_argument("--rms-threshold", type=float, default=0.001, help="RMS silence cutoff threshold")
-    parser.add_argument("--sr", type=int, default=22050, help="Sample rate in Hz")
+    parser.add_argument("--window-sec", type=float, default=default_window_sec, help=f"Window duration in seconds (default: {default_window_sec} from config)")
+    parser.add_argument("--stride-sec", type=float, default=default_stride_sec, help=f"Stride duration in seconds (default: {default_stride_sec} from config)")
+    parser.add_argument("--batch-size", type=int, default=default_batch_size, help=f"Inference batch size (default: {default_batch_size} from config)")
+    parser.add_argument("--rms-threshold", type=float, default=default_rms_threshold, help=f"RMS silence cutoff threshold (default: {default_rms_threshold} from config)")
+    parser.add_argument("--sr", type=int, default=default_sr, help=f"Sample rate in Hz (default: {default_sr} from config)")
     parser.add_argument("--save-all-windows", action="store_true", help="Save all window predictions in JSON")
     args = parser.parse_args()
 

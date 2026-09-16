@@ -22,7 +22,8 @@ def main():
     parser.add_argument("input", type=str, help="Path to input audio or video file")
     parser.add_argument("--model", type=str, default="models/crnn_best.pt", help="Path to trained CRNN checkpoint")
     parser.add_argument("--window-sec", type=float, default=10.0, help="Window buffer size in seconds (default: 10.0)")
-    parser.add_argument("--hop-sec", type=float, default=2.5, help="Hop size in seconds (default: 2.5 for 75% overlap)")
+    parser.add_argument("--hop-sec", type=float, default=4.0, help="Hop size in seconds (default: 4.0 for 50-60% overlap)")
+    parser.add_argument("--batch-size", type=int, default=64, help="Inference batch size (default: 64)")
     parser.add_argument("--sr", type=int, default=22050, help="Sample rate (default: 22050)")
     parser.add_argument("--threshold", type=float, default=0.35, help="Confidence threshold (default: 0.35)")
     parser.add_argument("--output", type=str, default=None, help="Output JSON path (optional)")
@@ -76,6 +77,7 @@ def main():
         sr=args.sr,
         window_sec=args.window_sec,
         hop_sec=args.hop_sec,
+        batch_size=args.batch_size,
         device=device_name,
         confidence_threshold=args.threshold,
         include_nonmusic=args.include_nonmusic

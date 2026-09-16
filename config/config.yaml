@@ -1,46 +1,105 @@
-# CNN Pipeline Configuration
-
-# List of target instruments for the CNN baseline classifier
+# Global configuration for soundtrack classifier
 train_labels:
-  - sheng
-  - dizi
   - erhu
   - pipa
+  - dizi
+  - percussion
+  - strings_western
+  - sheng
   - suona
   - guzheng
   - yangqin
-  - percussion
-  - strings
   - woodwind
   - brass
   - nonmusic
 
-audio:
-  sample_rate: 44100
-  duration_sec: 3.0
-  # CQT specific parameters
-  cqt:
-    fmin: 65
-    fmax: 
-    n_bins: 84
-    bins_per_octave: 12
+# CNN Baseline Configuration
+cnn:
+  audio:
+    sample_rate: 44100
+    duration_sec: 3.0
+    # CQT specific parameters
+    cqt:
+      fmin: 65
+      fmax: null
+      n_bins: 84
+      bins_per_octave: 12
 
-training:
-  batch_size: 32
-  epochs: 50
-  learning_rate: 0.0001
-  num_workers: 4
-  early_stopping_patience: 8
+  training:
+    batch_size: 32
+    epochs: 50
+    learning_rate: 0.0001
+    num_workers: 4
+    early_stopping_patience: 8
 
-augmentation:
-  spec_augment: false
-  minority_only: true
+  augmentation:
+    spec_augment: false
+    minority_only: true
 
-degradation:
-  enabled: true
-  probability: 80  # % chance to degrade an audio clip during training
-  sample_rate: 44100
+  degradation:
+    enabled: true
+    probability: 80  # % chance to degrade an audio clip during training
+    sample_rate: 44100
 
+  paths:
+    data_dir: "data/train"
+    models_dir: "models"
+
+# Archival CRNN Pipeline Configuration
+crnn:
+  audio:
+    sample_rate: 22050
+    crop_duration_sec: 8.0
+    window_sec: 10.0
+    hop_sec: 2.5
+    cqt:
+      fmin: 65.4
+      n_bins: 168
+      bins_per_octave: 24
+      hop_length: 512
+      in_channels: 2
+
+  degradation:
+    enabled: true
+    probability: 40            # 40% of crops get degraded
+    lowpass_cutoff_hz: 5500.0
+    lowpass_order: 2
+    highpass_cutoff_hz: 80.0
+    highpass_order: 1
+    snr_min_db: 42.0           # Subtle ambient film bed (10 dB quieter than previous baseline)
+    snr_max_db: 52.0           # Clean archival transfer baseline
+    hum_frequency_hz: 50.0
+    hum_level: 0.005           # Dropped to 0.5% (faint analog warmth)
+    crackle_probability: 0.0   # Disabled harsh dust clicks/pops
+    saturation_drive: 1.03     # Subtle optical print compression without volume boost
+    reverb_room_size: 0.15
+    reverb_wet_level: 0.03
+
+  inference:
+    batch_size: 32
+    rms_threshold: 0.008
+    confidence_threshold: 0.35
+    min_event_sec: 0.4
+    include_nonmusic: true
+
+  training:
+    batch_size: 16
+    epochs: 50
+    learning_rate: 0.0003
+    early_stopping_patience: 7
+    num_workers: 4
+    precompute_features: true  # Default: true. Precomputes & caches CQT+HPSS tensors for 5-10x faster training. If false, loads dynamically.
+    features_dir: "data/features_cqt_hpss"
+    focal_gamma: 2.0
+    focal_alpha: 0.25
+
+  model:
+    hidden_size: 128
+    num_rnn_layers: 2
+    bidirectional: true
+    dropout: 0.2
+
+# Common paths
 paths:
   data_dir: "data/train"
   models_dir: "models"

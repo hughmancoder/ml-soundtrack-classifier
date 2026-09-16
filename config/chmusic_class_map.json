@@ -1,0 +1,471 @@
+{
+  "train_labels": [
+    "sheng",
+    "dizi",
+    "erhu",
+    "pipa",
+    "suona",
+    "guzheng",
+    "yangqin",
+    "percussion",
+    "strings",
+    "woodwind",
+    "brass",
+    "nonmusic"
+  ],
+  "instruments": {
+    "1": {
+      "name": "Erhu",
+      "chinese": "\u4e8c\u80e1",
+      "type": "Bowed String",
+      "target_class": "erhu"
+    },
+    "2": {
+      "name": "Pipa",
+      "chinese": "\u7435\u7436",
+      "type": "Plucked Lute",
+      "target_class": "pipa"
+    },
+    "3": {
+      "name": "Sanxian",
+      "chinese": "\u4e09\u5f26",
+      "type": "Plucked Lute",
+      "target_class": "strings"
+    },
+    "4": {
+      "name": "Dizi",
+      "chinese": "\u7b1b\u5b50",
+      "type": "Transverse Bamboo Flute",
+      "target_class": "dizi"
+    },
+    "5": {
+      "name": "Suona",
+      "chinese": "\u5522\u5450",
+      "type": "Double-reed Horn",
+      "target_class": "suona"
+    },
+    "6": {
+      "name": "Zhuiqin",
+      "chinese": "\u5760\u7434",
+      "type": "Bowed String Fiddle",
+      "target_class": "strings"
+    },
+    "7": {
+      "name": "Zhongruan",
+      "chinese": "\u4e2d\u962e",
+      "type": "Plucked Moon Lute",
+      "target_class": "strings"
+    },
+    "8": {
+      "name": "Liuqin",
+      "chinese": "\u67f3\u7434",
+      "type": "Plucked Lute Mandolin",
+      "target_class": "strings"
+    },
+    "9": {
+      "name": "Guzheng",
+      "chinese": "\u53e4\u7b5d",
+      "type": "Plucked Zither",
+      "target_class": "guzheng"
+    },
+    "10": {
+      "name": "Yangqin",
+      "chinese": "\u626c\u7434",
+      "type": "Hammered Dulcimer",
+      "target_class": "yangqin"
+    },
+    "11": {
+      "name": "Sheng",
+      "chinese": "\u7b19",
+      "type": "Free-reed Mouth Organ",
+      "target_class": "sheng"
+    }
+  },
+  "files": {
+    "1.1.wav": {
+      "instrument_id": 1,
+      "instrument": "Erhu",
+      "music_number": 1,
+      "music_name": "Ao Bao Xiang Hui",
+      "target_class": "erhu"
+    },
+    "1.2.wav": {
+      "instrument_id": 1,
+      "instrument": "Erhu",
+      "music_number": 2,
+      "music_name": "Mu Yang Gu Niang",
+      "target_class": "erhu"
+    },
+    "1.3.wav": {
+      "instrument_id": 1,
+      "instrument": "Erhu",
+      "music_number": 3,
+      "music_name": "Xiao He Tang Shui",
+      "target_class": "erhu"
+    },
+    "1.4.wav": {
+      "instrument_id": 1,
+      "instrument": "Erhu",
+      "music_number": 4,
+      "music_name": "Er Xing Qian Li",
+      "target_class": "erhu"
+    },
+    "1.5.wav": {
+      "instrument_id": 1,
+      "instrument": "Erhu",
+      "music_number": 5,
+      "music_name": "Yu Jia Gu Niang",
+      "target_class": "erhu"
+    },
+    "2.1.wav": {
+      "instrument_id": 2,
+      "instrument": "Pipa",
+      "music_number": 1,
+      "music_name": "Shi Mian Mai Fu (excerpts)",
+      "target_class": "pipa"
+    },
+    "2.2.wav": {
+      "instrument_id": 2,
+      "instrument": "Pipa",
+      "music_number": 2,
+      "music_name": "Su (excerpts)",
+      "target_class": "pipa"
+    },
+    "2.3.wav": {
+      "instrument_id": 2,
+      "instrument": "Pipa",
+      "music_number": 3,
+      "music_name": "Zhu Fu (excerpts)",
+      "target_class": "pipa"
+    },
+    "2.4.wav": {
+      "instrument_id": 2,
+      "instrument": "Pipa",
+      "music_number": 4,
+      "music_name": "Xian Zi Yun (excerpts)",
+      "target_class": "pipa"
+    },
+    "2.5.wav": {
+      "instrument_id": 2,
+      "instrument": "Pipa",
+      "music_number": 5,
+      "music_name": "Ying Hua",
+      "target_class": "pipa"
+    },
+    "3.1.wav": {
+      "instrument_id": 3,
+      "instrument": "Sanxian",
+      "music_number": 1,
+      "music_name": "Kang Ding Qing Ge",
+      "target_class": "strings"
+    },
+    "3.2.wav": {
+      "instrument_id": 3,
+      "instrument": "Sanxian",
+      "music_number": 2,
+      "music_name": "Ao Bao Xiang Hui",
+      "target_class": "strings"
+    },
+    "3.3.wav": {
+      "instrument_id": 3,
+      "instrument": "Sanxian",
+      "music_number": 3,
+      "music_name": "Gan Niu Shan",
+      "target_class": "strings"
+    },
+    "3.4.wav": {
+      "instrument_id": 3,
+      "instrument": "Sanxian",
+      "music_number": 4,
+      "music_name": "Mao Zhu Xi De Hua Er Ji Xin Shang",
+      "target_class": "strings"
+    },
+    "3.5.wav": {
+      "instrument_id": 3,
+      "instrument": "Sanxian",
+      "music_number": 5,
+      "music_name": "Nan Ni Wan",
+      "target_class": "strings"
+    },
+    "4.1.wav": {
+      "instrument_id": 4,
+      "instrument": "Dizi",
+      "music_number": 1,
+      "music_name": "Hong Mei Zan",
+      "target_class": "dizi"
+    },
+    "4.2.wav": {
+      "instrument_id": 4,
+      "instrument": "Dizi",
+      "music_number": 2,
+      "music_name": "Shan Hu Song",
+      "target_class": "dizi"
+    },
+    "4.3.wav": {
+      "instrument_id": 4,
+      "instrument": "Dizi",
+      "music_number": 3,
+      "music_name": "Wei Shan Hu",
+      "target_class": "dizi"
+    },
+    "4.4.wav": {
+      "instrument_id": 4,
+      "instrument": "Dizi",
+      "music_number": 4,
+      "music_name": "Xiu Hong Qi",
+      "target_class": "dizi"
+    },
+    "4.5.wav": {
+      "instrument_id": 4,
+      "instrument": "Dizi",
+      "music_number": 5,
+      "music_name": "Xiao Bai Yang",
+      "target_class": "dizi"
+    },
+    "5.1.wav": {
+      "instrument_id": 5,
+      "instrument": "Suona",
+      "music_number": 1,
+      "music_name": "Hao Han Ge",
+      "target_class": "suona"
+    },
+    "5.2.wav": {
+      "instrument_id": 5,
+      "instrument": "Suona",
+      "music_number": 2,
+      "music_name": "She Yuan Dou Shi Xiang Yang Hua",
+      "target_class": "suona"
+    },
+    "5.3.wav": {
+      "instrument_id": 5,
+      "instrument": "Suona",
+      "music_number": 3,
+      "music_name": "Yi Zhi Hua",
+      "target_class": "suona"
+    },
+    "5.4.wav": {
+      "instrument_id": 5,
+      "instrument": "Suona",
+      "music_number": 4,
+      "music_name": "Huang Tu Qing (excerpts)",
+      "target_class": "suona"
+    },
+    "5.5.wav": {
+      "instrument_id": 5,
+      "instrument": "Suona",
+      "music_number": 5,
+      "music_name": "Liang Zhu (excerpts)",
+      "target_class": "suona"
+    },
+    "6.1.wav": {
+      "instrument_id": 6,
+      "instrument": "Zhuiqin",
+      "music_number": 1,
+      "music_name": "Jie Nian (excerpt 1)",
+      "target_class": "strings"
+    },
+    "6.2.wav": {
+      "instrument_id": 6,
+      "instrument": "Zhuiqin",
+      "music_number": 2,
+      "music_name": "Jie Nian (excerpt 2)",
+      "target_class": "strings"
+    },
+    "6.3.wav": {
+      "instrument_id": 6,
+      "instrument": "Zhuiqin",
+      "music_number": 3,
+      "music_name": "Hong Sao (excerpt)",
+      "target_class": "strings"
+    },
+    "6.4.wav": {
+      "instrument_id": 6,
+      "instrument": "Zhuiqin",
+      "music_number": 4,
+      "music_name": "Jie Nian (excerpt 3)",
+      "target_class": "strings"
+    },
+    "6.5.wav": {
+      "instrument_id": 6,
+      "instrument": "Zhuiqin",
+      "music_number": 5,
+      "music_name": "Zi Mei Yi Jia (excerpt)",
+      "target_class": "strings"
+    },
+    "7.1.wav": {
+      "instrument_id": 7,
+      "instrument": "Zhongruan",
+      "music_number": 1,
+      "music_name": "Yun Nan Hui Yi (excerpt 1)",
+      "target_class": "strings"
+    },
+    "7.2.wav": {
+      "instrument_id": 7,
+      "instrument": "Zhongruan",
+      "music_number": 2,
+      "music_name": "Yun Nan Hui Yi (excerpt 2)",
+      "target_class": "strings"
+    },
+    "7.3.wav": {
+      "instrument_id": 7,
+      "instrument": "Zhongruan",
+      "music_number": 3,
+      "music_name": "Yun Nan Hui Yi (excerpt 3)",
+      "target_class": "strings"
+    },
+    "7.4.wav": {
+      "instrument_id": 7,
+      "instrument": "Zhongruan",
+      "music_number": 4,
+      "music_name": "Yun Nan Hui Yi (excerpt 4)",
+      "target_class": "strings"
+    },
+    "7.5.wav": {
+      "instrument_id": 7,
+      "instrument": "Zhongruan",
+      "music_number": 5,
+      "music_name": "Yun Nan Hui Yi (excerpt 5)",
+      "target_class": "strings"
+    },
+    "8.1.wav": {
+      "instrument_id": 8,
+      "instrument": "Liuqin",
+      "music_number": 1,
+      "music_name": "Chun Dao Yi He (excerpt 1)",
+      "target_class": "strings"
+    },
+    "8.2.wav": {
+      "instrument_id": 8,
+      "instrument": "Liuqin",
+      "music_number": 2,
+      "music_name": "Yu Ge (excerpt)",
+      "target_class": "strings"
+    },
+    "8.3.wav": {
+      "instrument_id": 8,
+      "instrument": "Liuqin",
+      "music_number": 3,
+      "music_name": "Chun Dao Yi He (excerpt 2)",
+      "target_class": "strings"
+    },
+    "8.4.wav": {
+      "instrument_id": 8,
+      "instrument": "Liuqin",
+      "music_number": 4,
+      "music_name": "Yu Hou Ting Yuan (excerpt)",
+      "target_class": "strings"
+    },
+    "8.5.wav": {
+      "instrument_id": 8,
+      "instrument": "Liuqin",
+      "music_number": 5,
+      "music_name": "Jian Qi (excerpt)",
+      "target_class": "strings"
+    },
+    "9.1.wav": {
+      "instrument_id": 9,
+      "instrument": "Guzheng",
+      "music_number": 1,
+      "music_name": "Lin Chong Ye Ben (excerpt 1)",
+      "target_class": "guzheng"
+    },
+    "9.2.wav": {
+      "instrument_id": 9,
+      "instrument": "Guzheng",
+      "music_number": 2,
+      "music_name": "Zhan Tai Feng (excerpt)",
+      "target_class": "guzheng"
+    },
+    "9.3.wav": {
+      "instrument_id": 9,
+      "instrument": "Guzheng",
+      "music_number": 3,
+      "music_name": "Yu Zhou Chang Wan",
+      "target_class": "guzheng"
+    },
+    "9.4.wav": {
+      "instrument_id": 9,
+      "instrument": "Guzheng",
+      "music_number": 4,
+      "music_name": "Lin Chong Ye Ben (excerpt 2)",
+      "target_class": "guzheng"
+    },
+    "9.5.wav": {
+      "instrument_id": 9,
+      "instrument": "Guzheng",
+      "music_number": 5,
+      "music_name": "Han Jiang Yun",
+      "target_class": "guzheng"
+    },
+    "10.1.wav": {
+      "instrument_id": 10,
+      "instrument": "Yangqin",
+      "music_number": 1,
+      "music_name": "Zuo Zhu Fa Lian Xi Qu",
+      "target_class": "yangqin"
+    },
+    "10.2.wav": {
+      "instrument_id": 10,
+      "instrument": "Yangqin",
+      "music_number": 2,
+      "music_name": "Fen Jie He Xian Lian Xi Qu",
+      "target_class": "yangqin"
+    },
+    "10.3.wav": {
+      "instrument_id": 10,
+      "instrument": "Yangqin",
+      "music_number": 3,
+      "music_name": "Dan Yin Yu He Yin Jiao Ti Lian Xi Qu",
+      "target_class": "yangqin"
+    },
+    "10.4.wav": {
+      "instrument_id": 10,
+      "instrument": "Yangqin",
+      "music_number": 4,
+      "music_name": "Lun Yin Lian Xi Qu",
+      "target_class": "yangqin"
+    },
+    "10.5.wav": {
+      "instrument_id": 10,
+      "instrument": "Yangqin",
+      "music_number": 5,
+      "music_name": "Da Qi Luo Gu Qing Feng Shou",
+      "target_class": "yangqin"
+    },
+    "11.1.wav": {
+      "instrument_id": 11,
+      "instrument": "Sheng",
+      "music_number": 1,
+      "music_name": "Gua Hong Deng (excerpt)",
+      "target_class": "sheng"
+    },
+    "11.2.wav": {
+      "instrument_id": 11,
+      "instrument": "Sheng",
+      "music_number": 2,
+      "music_name": "Qin Wang Po Zhen Yue (excerpt)",
+      "target_class": "sheng"
+    },
+    "11.3.wav": {
+      "instrument_id": 11,
+      "instrument": "Sheng",
+      "music_number": 3,
+      "music_name": "Shui Ku Yin Lai Jin Feng Huang",
+      "target_class": "sheng"
+    },
+    "11.4.wav": {
+      "instrument_id": 11,
+      "instrument": "Sheng",
+      "music_number": 4,
+      "music_name": "Shan Xiang Xi Kai Feng Shou Lian",
+      "target_class": "sheng"
+    },
+    "11.5.wav": {
+      "instrument_id": 11,
+      "instrument": "Sheng",
+      "music_number": 5,
+      "music_name": "Xi Ban Ya Dou Niu Wu Qu",
+      "target_class": "sheng"
+    }
+  }
+}

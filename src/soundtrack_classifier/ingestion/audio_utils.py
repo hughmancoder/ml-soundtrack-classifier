@@ -4,28 +4,32 @@ import librosa
 import soundfile as sf
 import numpy as np
 
-def extract_audio_from_video(video_path: str, output_audio_path: str, sr: int = 44100):
+from typing import Optional
+
+def extract_audio_from_video(video_path: str, output_audio_path: str, sr: Optional[int] = None):
     """
     Extracts audio from a legacy film file (e.g., .mp4, .mkv) and saves it as a .wav file.
     Uses ffmpeg via subprocess to handle the extraction.
+    If sr is None, preserves the original native sample rate.
     """
     if not os.path.exists(video_path):
         raise FileNotFoundError(f"Video file not found: {video_path}")
         
     print(f"Extracting audio from {video_path} to {output_audio_path}...")
     
-    # We use subprocess with ffmpeg directly. We could use ffmpeg-python, 
-    # but subprocess is often cleaner for a simple extraction.
     command = [
         "ffmpeg",
         "-y",               # Overwrite output
         "-i", video_path,   # Input file
         "-vn",              # Disable video
         "-acodec", "pcm_s16le", # PCM 16-bit
-        "-ar", str(sr),     # Sample rate
-        "-ac", "1",         # Mono (or 2 for stereo)
-        output_audio_path
     ]
+    if sr is not None:
+        command.extend(["-ar", str(sr)])
+    command.extend([
+        "-ac", "1",         # Mono
+        output_audio_path
+    ])
     
     subprocess.run(command, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     print("Extraction complete.")

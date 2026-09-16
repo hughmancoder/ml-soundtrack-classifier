@@ -19,10 +19,52 @@ import yaml
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader, random_split
+import torch.nn.functional as F
+from typing import Optional, Union, List, Tuple
+from torch.utils.data import DataLoader, Subset
 
 from soundtrack_classifier.rnn.dataset import ArchivalSoundtrackRNNDataset
 from soundtrack_classifier.rnn.rnn import ArchivalInstrumentCRNN
+
+
+class FocalLoss(nn.Module):
+    """
+    Focal Loss for multi-class audio classification.
+    FL(p_t) = -alpha_t * (1 - p_t)^gamma * log(p_t)
+    
+    Down-weights easy background/dominant class frames while focusing learning
+    on hard, sparsely occurring instrument events.
+    """
+    def __init__(
+        self,
+        gamma: float = 2.0,
+        weight: Optional[torch.Tensor] = None,
+        reduction: str = "mean"
+    ):
+        super().__init__()
+        self.gamma = gamma
+        self.weight = weight
+        self.reduction = reduction
+
+    def forward(self, logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
+        # 1. Unweighted CE to get true p_t
+        ce_loss_unweighted = F.cross_entropy(
+            logits, targets, reduction="none", weight=None
+        )
+        pt = torch.exp(-ce_loss_unweighted)
+        modulating_factor = (1.0 - pt) ** self.gamma
+        
+        # 2. Weighted CE to scale gradients
+        ce_loss_weighted = F.cross_entropy(
+            logits, targets, reduction="none", weight=self.weight
+        )
+        loss = modulating_factor * ce_loss_weighted
+
+        if self.reduction == "mean":
+            return loss.mean()
+        elif self.reduction == "sum":
+            return loss.sum()
+        return loss
 
 
 def load_config(config_path="config/config.yaml"):
@@ -30,12 +72,51 @@ def load_config(config_path="config/config.yaml"):
         return yaml.safe_load(f)
 
 
+def stratified_train_val_split(
+    labels: List[int],
+    val_ratio: float = 0.2,
+    seed: int = 42
+) -> Tuple[List[int], List[int]]:
+    """
+    Performs a stratified train/validation split ensuring every class with >= 2
+    examples has representation in both training and validation subsets.
+    Eliminates zero-validation class dropouts on small datasets.
+    """
+    rng = np.random.RandomState(seed)
+    class_indices: dict = {}
+    for idx, label in enumerate(labels):
+        class_indices.setdefault(label, []).append(idx)
+
+    train_indices: List[int] = []
+    val_indices: List[int] = []
+
+    for _, indices in sorted(class_indices.items()):
+        indices = list(indices)
+        rng.shuffle(indices)
+        n = len(indices)
+        if n == 1:
+            train_indices.extend(indices)
+        elif n == 2:
+            train_indices.append(indices[0])
+            val_indices.append(indices[1])
+        else:
+            n_val = max(1, int(round(n * val_ratio)))
+            val_indices.extend(indices[:n_val])
+            train_indices.extend(indices[n_val:])
+
+    rng.shuffle(train_indices)
+    rng.shuffle(val_indices)
+    return train_indices, val_indices
+
+
 def train_rnn(
     resume_checkpoint=None,
     epochs_override=None,
     batch_size_override=None,
     sr=22050,
-    crop_duration_sec=8.0
+    crop_duration_sec=8.0,
+    features_dir_override=None,
+    precompute_features_override=None
 ):
     # 1. Configuration & Classes
     config = load_config()
@@ -51,43 +132,58 @@ def train_rnn(
     print(f"Training Archival CRNN on device: {device}")
 
     # 2. Dataset Setup
-    data_dir = config["paths"]["data_dir"]
-    if not os.path.exists(data_dir):
-        print(f"Error: Data directory {data_dir} not found.")
-        return
+    crnn_train_cfg = config.get("crnn", {}).get("training", {})
+    data_dir = (
+        config.get("paths", {}).get("data_dir") or 
+        config.get("crnn", {}).get("paths", {}).get("data_dir") or 
+        config.get("cnn", {}).get("paths", {}).get("data_dir", "data/train")
+    )
+    precompute_flag = (
+        precompute_features_override 
+        if precompute_features_override is not None 
+        else crnn_train_cfg.get("precompute_features", True)
+    )
+    features_dir = features_dir_override or crnn_train_cfg.get("features_dir", "data/features_cqt_hpss")
 
-    print(f"Loading dataset with dynamic {crop_duration_sec}s crops at {sr} Hz...")
+    mode_desc = f"Precomputed Cache Mode ({features_dir})" if precompute_flag else "Dynamic Waveform Mode"
+    print(f"Loading dataset with dynamic {crop_duration_sec}s crops at {sr} Hz [{mode_desc}]...")
     full_dataset = ArchivalSoundtrackRNNDataset(
         data_dir=data_dir,
         class_to_idx=class_to_idx,
         sr=sr,
         crop_duration_sec=crop_duration_sec,
         random_crop=True,
-        degradation_config=config.get("degradation", None)
+        degradation_config=config.get("crnn", {}).get("degradation") or config.get("degradation", None),
+        features_dir=features_dir,
+        precompute_features=precompute_flag
     )
 
     if len(full_dataset) == 0:
         print(f"Error: No audio files found in {data_dir}.")
         return
 
-    # Train/Val split: 80% train, 20% validation
-    train_size = int(0.8 * len(full_dataset))
-    val_size = len(full_dataset) - train_size
-    train_dataset, val_dataset = random_split(
-        full_dataset, 
-        [train_size, val_size], 
-        generator=torch.Generator().manual_seed(42)
+    # Train/Val split: Stratified split ensuring balanced representation across all classes
+    train_indices, val_indices = stratified_train_val_split(
+        labels=full_dataset.labels,
+        val_ratio=0.2,
+        seed=42
     )
+    train_dataset = Subset(full_dataset, train_indices)
+    val_dataset = Subset(full_dataset, val_indices)
+    print(f"[*] Stratified Split: {len(train_dataset)} train samples, {len(val_dataset)} validation samples")
 
-    # Compute class weights to counteract class imbalance
+    # Compute class weights (inverse frequency) for multi-class Focal Loss
     train_labels_list = [full_dataset.labels[i] for i in train_dataset.indices]
     class_counts = np.bincount(train_labels_list, minlength=num_classes)
     class_counts = np.maximum(class_counts, 1)
-    weights = len(train_labels_list) / (num_classes * class_counts)
-    weights_tensor = torch.tensor(weights, dtype=torch.float32, device=device)
+    
+    total_train_samples = len(train_labels_list)
+    class_weights = total_train_samples / (num_classes * class_counts)
+    weights_tensor = torch.tensor(class_weights, dtype=torch.float32, device=device)
 
-    batch_size = batch_size_override or config.get("training", {}).get("batch_size", 16)
-    num_workers = min(4, config.get("training", {}).get("num_workers", 2))
+    crnn_train_cfg = config.get("crnn", {}).get("training", {})
+    batch_size = batch_size_override or crnn_train_cfg.get("batch_size") or config.get("training", {}).get("batch_size", 16)
+    num_workers = min(4, crnn_train_cfg.get("num_workers") or config.get("training", {}).get("num_workers", 4))
 
     train_loader = DataLoader(
         train_dataset,
@@ -110,9 +206,17 @@ def train_rnn(
         sr=sr
     ).to(device)
 
-    learning_rate = config.get("training", {}).get("learning_rate", 0.0003)
+    learning_rate = crnn_train_cfg.get("learning_rate") or config.get("training", {}).get("learning_rate", 0.0003)
+    focal_gamma = float(crnn_train_cfg.get("focal_gamma", 2.0))
+    focal_alpha = crnn_train_cfg.get("focal_alpha", None)
+    if focal_alpha is not None:
+        focal_alpha = float(focal_alpha)
+
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=1e-4)
-    criterion = nn.CrossEntropyLoss(weight=weights_tensor)
+    criterion = FocalLoss(
+        gamma=focal_gamma,
+        weight=weights_tensor
+    )
 
     start_epoch = 0
     best_val_acc = 0.0
@@ -133,8 +237,8 @@ def train_rnn(
             model.load_state_dict(checkpoint)
 
     # 4. Training Loop
-    epochs = epochs_override or config.get("training", {}).get("epochs", 40)
-    patience = config.get("training", {}).get("early_stopping_patience", 7)
+    epochs = epochs_override or crnn_train_cfg.get("epochs") or config.get("training", {}).get("epochs", 40)
+    patience = crnn_train_cfg.get("early_stopping_patience") or config.get("training", {}).get("early_stopping_patience", 7)
 
     models_dir = config.get("paths", {}).get("models_dir", "models")
     os.makedirs(models_dir, exist_ok=True)
@@ -163,6 +267,8 @@ def train_rnn(
             optimizer.zero_grad()
             # Forward pass: returns clip-level logits pooled over sequence
             outputs = model(audio_batch, return_frames=False)
+
+            # 1. Targets are already class indices, pass directly to multi-class loss
             loss = criterion(outputs, labels_batch)
 
             loss.backward()
@@ -182,6 +288,7 @@ def train_rnn(
         correct = 0
         total = 0
 
+        # 4. Dominant class selection during validation
         with torch.no_grad():
             for audio_batch, labels_batch in val_loader:
                 audio_batch = audio_batch.to(device)
@@ -191,9 +298,10 @@ def train_rnn(
                 loss = criterion(outputs, labels_batch)
                 val_loss += loss.item()
 
-                _, predicted = torch.max(outputs, 1)
+                probs = torch.softmax(outputs, dim=-1)
+                predicted_dominant = torch.argmax(probs, dim=-1)
                 total += labels_batch.size(0)
-                correct += (predicted == labels_batch).sum().item()
+                correct += (predicted_dominant == labels_batch).sum().item()
 
         avg_val_loss = val_loss / max(1, len(val_loader))
         val_acc = 100.0 * correct / max(1, total)
@@ -239,6 +347,9 @@ if __name__ == "__main__":
     parser.add_argument("--batch-size", type=int, default=None, help="Batch size")
     parser.add_argument("--sr", type=int, default=22050, help="Sample rate (default: 22050)")
     parser.add_argument("--crop-duration", type=float, default=8.0, help="Training crop duration in seconds (default: 8.0)")
+    parser.add_argument("--features-dir", type=str, default=None, help="Directory containing precomputed CQT+HPSS features (default: data/features_cqt_hpss)")
+    parser.add_argument("--precompute-features", dest="precompute_features", action="store_true", default=None, help="Force precomputed CQT+HPSS cached mode")
+    parser.add_argument("--dynamic-features", dest="precompute_features", action="store_false", help="Force dynamic waveform loading and CQT extraction")
     args = parser.parse_args()
 
     train_rnn(
@@ -246,5 +357,7 @@ if __name__ == "__main__":
         epochs_override=args.epochs,
         batch_size_override=args.batch_size,
         sr=args.sr,
-        crop_duration_sec=args.crop_duration
+        crop_duration_sec=args.crop_duration,
+        features_dir_override=args.features_dir,
+        precompute_features_override=args.precompute_features
     )

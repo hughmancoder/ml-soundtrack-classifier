@@ -1,3 +1,4 @@
 # Silent clips (RMS < 0.005)
-# Total: 0 / 5837
+# Total: 0 / 94
+# Dataset Total Duration: 11118.85s (03:05:19)
 

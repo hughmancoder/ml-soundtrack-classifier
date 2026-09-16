@@ -4,36 +4,66 @@ from typing import Dict, List, Optional, Tuple, Union
 import librosa
 import numpy as np
 import torch
+import yaml
+
+
+def load_config(config_path: str = "config/config.yaml") -> dict:
+    """Loads configuration from yaml file."""
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, "r", encoding="utf-8") as f:
+                return yaml.safe_load(f) or {}
+        except Exception:
+            pass
+    return {}
 
 
 def run_streaming_rnn_inference(
     audio_path: str,
     model: torch.nn.Module,
-    idx_to_class: Dict[int, str],
-    sr: int = 22050,
-    window_sec: float = 10.0,
-    hop_sec: float = 2.5,
+    idx_to_class: Optional[Dict[int, str]] = None,
+    sr: Optional[int] = None,
+    window_sec: Optional[float] = None,
+    hop_sec: Optional[float] = None,
+    batch_size: Optional[int] = None,
     device: str = "cpu",
-    rms_threshold: float = 0.005,
-    confidence_threshold: float = 0.35,
-    min_event_sec: float = 1.0,
-    cqt_hop: int = 512,
-    include_nonmusic: bool = False
+    rms_threshold: Optional[float] = None,
+    confidence_threshold: Optional[float] = None,
+    min_event_sec: Optional[float] = None,
+    cqt_hop: Optional[int] = None,
+    include_nonmusic: Optional[bool] = None,
+    config: Optional[dict] = None
 ) -> List[Dict[str, Union[float, str]]]:
     """
-    Executes streaming inference across continuous audio using 10-second fixed buffers
-    with 50% to 75% overlap and Hanning window averaging.
-
-    Operational Design:
-    - 10-Second Fixed Buffer:
-        Provides the recurrent GRU units with adequate temporal context to model extended
-        phrasing (erhu portamentos, guqin decays) and distinguish steady-state optical film noise.
-    - 50%-75% Overlap (hop_sec = 2.5s -> 75% overlap):
-        Dense evaluation across continuous boundaries.
-    - Hanning Window Averaging:
-        Applies a smooth Hanning tapering window across each 10s prediction segment, eliminating
-        boundary padding artifacts and transition edge discontinuities.
+    Executes streaming inference across continuous audio using fixed buffers
+    with batched GPU inference and Hanning window averaging.
+    All parameters are dynamically resolved from config.yaml with override support.
     """
+    if config is None:
+        config = load_config()
+
+    crnn_cfg = config.get("crnn", {})
+    crnn_audio = crnn_cfg.get("audio", {})
+    crnn_inf = crnn_cfg.get("inference", {})
+    crnn_cqt = crnn_audio.get("cqt", {})
+
+    sr = sr if sr is not None else int(crnn_audio.get("sample_rate", 22050))
+    window_sec = window_sec if window_sec is not None else float(crnn_audio.get("window_sec", 10.0))
+    hop_sec = hop_sec if hop_sec is not None else float(crnn_audio.get("hop_sec", 4.0))
+    batch_size = batch_size if batch_size is not None else int(crnn_inf.get("batch_size", 64))
+    rms_threshold = rms_threshold if rms_threshold is not None else float(crnn_inf.get("rms_threshold", 0.005))
+    confidence_threshold = confidence_threshold if confidence_threshold is not None else float(crnn_inf.get("confidence_threshold", 0.35))
+    min_event_sec = min_event_sec if min_event_sec is not None else float(crnn_inf.get("min_event_sec", 1.0))
+    cqt_hop = cqt_hop if cqt_hop is not None else int(crnn_cqt.get("hop_length", 512))
+    include_nonmusic = include_nonmusic if include_nonmusic is not None else bool(crnn_inf.get("include_nonmusic", False))
+
+    if idx_to_class is None:
+        train_labels = config.get("train_labels", [
+            "sheng", "dizi", "erhu", "pipa", "suona", "guzheng",
+            "yangqin", "percussion", "strings", "woodwind", "brass", "nonmusic"
+        ])
+        idx_to_class = {i: c for i, c in enumerate(train_labels)}
+
     model.eval()
     model.to(device)
 
@@ -58,34 +88,50 @@ def run_streaming_rnn_inference(
     accum_probs = np.zeros((total_frames, num_classes), dtype=np.float32)
     accum_weights = np.zeros((total_frames, 1), dtype=np.float32)
 
-    # Stream through audio buffer with overlap
-    print(f"[Streaming RNN Inference] Streaming {window_sec}s windows with {hop_sec}s hop (overlap: {(1 - hop_sec/window_sec)*100:.0f}%)...")
+    slice_starts = list(range(0, total_samples - window_samples + 1, hop_samples))
+    print(f"[Streaming RNN Inference] Streaming {len(slice_starts)} windows ({window_sec}s with {hop_sec}s hop, batch_size={batch_size})...")
     
-    for start_idx in range(0, total_samples - window_samples + 1, hop_samples):
-        chunk = audio[start_idx : start_idx + window_samples]
+    hann_cached = None
 
-        # Check silence via RMS energy
-        rms_val = np.mean(librosa.feature.rms(y=chunk))
-        if rms_val < rms_threshold:
+    # Stream through audio in parallel batches
+    for b_start in range(0, len(slice_starts), batch_size):
+        b_indices = slice_starts[b_start : b_start + batch_size]
+        valid_chunks = []
+        valid_starts = []
+
+        for start_idx in b_indices:
+            chunk = audio[start_idx : start_idx + window_samples]
+
+            # Fast vectorized RMS energy check
+            rms_val = float(np.sqrt(np.mean(chunk ** 2)))
+            if rms_val < rms_threshold:
+                continue
+
+            valid_chunks.append(chunk)
+            valid_starts.append(start_idx)
+
+        if not valid_chunks:
             continue
 
-        chunk_tensor = torch.tensor(chunk, dtype=torch.float32, device=device).unsqueeze(0)
+        batch_tensor = torch.tensor(np.array(valid_chunks), dtype=torch.float32, device=device)
 
         with torch.no_grad():
-            # Get frame-level predictions (1, T_chunk, num_classes)
-            frame_logits = model(chunk_tensor, return_frames=True)
-            frame_probs = torch.softmax(frame_logits, dim=-1).squeeze(0).cpu().numpy()
+            frame_logits = model(batch_tensor, return_frames=True)
+            batch_probs = torch.softmax(frame_logits, dim=-1).cpu().numpy()
 
-        t_chunk = frame_probs.shape[0]
-        # Hanning window weighting to suppress edge/padding effects
-        hann = np.hanning(t_chunk)[:, None]
+        B, t_chunk, _ = batch_probs.shape
+        if hann_cached is None or hann_cached.shape[0] != t_chunk:
+            hann_cached = np.hanning(t_chunk)[:, None]
 
-        start_frame = int(round(start_idx / cqt_hop))
-        end_frame = min(start_frame + t_chunk, total_frames)
-        valid_len = end_frame - start_frame
+        weighted_probs = batch_probs * hann_cached[None, :, :]
 
-        accum_probs[start_frame:end_frame] += (frame_probs[:valid_len] * hann[:valid_len])
-        accum_weights[start_frame:end_frame] += hann[:valid_len]
+        for i, start_idx in enumerate(valid_starts):
+            start_frame = int(round(start_idx / cqt_hop))
+            end_frame = min(start_frame + t_chunk, total_frames)
+            valid_len = end_frame - start_frame
+
+            accum_probs[start_frame:end_frame] += weighted_probs[i, :valid_len]
+            accum_weights[start_frame:end_frame] += hann_cached[:valid_len]
 
     # Normalize by accumulated weights
     valid_mask = (accum_weights > 1e-6).squeeze()
