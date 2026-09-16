@@ -40,16 +40,17 @@ class GUISettings:
     _crnn_audio = _crnn_cfg.get("audio", {})
     _crnn_inf = _crnn_cfg.get("inference", {})
 
+    _ast_cfg = _cfg.get("ast", {})
+    _ast_scoring = _ast_cfg.get("scoring", {})
+    _ast_post = _ast_cfg.get("postprocessing", {})
+
     SERVER_PORT = 7860
     SERVER_NAME = "127.0.0.1"
     SHARE_PUBLIC = False
     
-    # Model Architecture: CRNN exclusively
-    DEFAULT_MODEL_TYPE = "CRNN"
-    
-    # Inference Tuning (CNN - Legacy baseline commented out)
-    # STRIDE_SEC = 1.0
-    # RMS_THRESHOLD = 0.001
+    # Model Architectures
+    MODEL_TYPES = ["AST (Foundation Transformer)", "Archival CRNN", "CNN (ResNet-50)"]
+    DEFAULT_MODEL_TYPE = "AST (Foundation Transformer)"
     
     # Inference Tuning (CRNN) - Dynamically loaded from config.yaml
     CRNN_WINDOW_SEC = float(_crnn_audio.get("window_sec", 10.0))
@@ -61,6 +62,15 @@ class GUISettings:
     CRNN_MIN_EVENT_SEC = float(_crnn_inf.get("min_event_sec", 1.0))
     CRNN_INCLUDE_NONMUSIC = bool(_crnn_inf.get("include_nonmusic", False))
     
+    # Inference Tuning (AST)
+    AST_WINDOW_SEC = float(_ast_scoring.get("window_sec", 4.0))
+    AST_HOP_SEC = float(_ast_scoring.get("hop_sec", 0.5))
+    AST_BATCH_SIZE = int(_ast_scoring.get("batch_size", 32))
+    AST_P_HIGH = float(_ast_post.get("p_high", 0.65))
+    AST_P_LOW = float(_ast_post.get("p_low", 0.35))
+    AST_MEDIAN_FILTER_SEC = float(_ast_post.get("median_filter_sec", 1.5))
+    AST_MIN_DURATION_SEC = float(_ast_post.get("min_duration_sec", 1.0))
+
     # UI Layout
     TABLE_ROW_COUNT = 50
 
@@ -69,14 +79,15 @@ src_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if src_dir not in sys.path:
     sys.path.insert(0, src_dir)
 
-# =============================================================================
-# Legacy CNN Baseline imports (Commented out)
-# =============================================================================
-# from soundtrack_classifier.cnn.resnet import ResNet18Classifier
-# from soundtrack_classifier.cnn.inference import run_sliding_window_inference
-
+# Model Imports
 from soundtrack_classifier.rnn.rnn import ArchivalInstrumentCRNN
 from soundtrack_classifier.rnn.inference import run_streaming_rnn_inference
+from soundtrack_classifier.ast.scoring import ContinuousFilmScorer
+from soundtrack_classifier.ast.postprocessing import TemporalPostProcessor
+from soundtrack_classifier.ast.probing_head import ProbingHead
+from soundtrack_classifier.ast.separation import FilmStemSeparator
+from soundtrack_classifier.cnn.resnet import ResNet50Classifier, ResNet18Classifier
+from soundtrack_classifier.cnn.inference import run_sliding_window_inference
 
 import shutil
 import subprocess
@@ -114,8 +125,8 @@ def get_ffmpeg_binary():
             
     return "ffmpeg"
 
-def get_available_models(model_type="CRNN"):
-    """List available CRNN model checkpoint filenames."""
+def get_available_models(model_type="AST (Foundation Transformer)"):
+    """List available model checkpoint filenames based on architecture."""
     config = load_config()
     models_dir = config.get('paths', {}).get('models_dir', 'models')
     if not os.path.isabs(models_dir):
@@ -125,31 +136,39 @@ def get_available_models(model_type="CRNN"):
         return []
         
     all_models = sorted([f for f in os.listdir(models_dir) if f.endswith('.pt')])
-    crnn_models = [f for f in all_models if "crnn" in f.lower() or "rnn" in f.lower()]
-    return crnn_models if crnn_models else all_models
+    
+    if "AST" in model_type.upper() or "TRANSFORMER" in model_type.upper():
+        ast_models = [f for f in all_models if "ast" in f.lower() or "probing" in f.lower()]
+        return ast_models if ast_models else ["ast_probing_head.pt"]
+    elif "CRNN" in model_type.upper() or "RNN" in model_type.upper():
+        crnn_models = [f for f in all_models if "crnn" in f.lower() or "rnn" in f.lower()]
+        return crnn_models if crnn_models else all_models
+    elif "CNN" in model_type.upper() or "RESNET" in model_type.upper():
+        cnn_models = [f for f in all_models if "crnn" not in f.lower() and ("cnn" in f.lower() or "resnet" in f.lower())]
+        return cnn_models if cnn_models else all_models
+    return all_models
 
-    # Legacy CNN model filtering (commented out)
-    # if not model_type or "CRNN" in model_type.upper():
-    #     crnn_models = [f for f in all_models if "crnn" in f.lower() or "rnn" in f.lower()]
-    #     return crnn_models if crnn_models else all_models
-    # else:
-    #     cnn_models = [f for f in all_models if "crnn" not in f.lower() and ("cnn" in f.lower() or "resnet" in f.lower())]
-    #     return cnn_models if cnn_models else all_models
-
-def get_default_model(model_type="CRNN"):
-    """Return default CRNN model checkpoint filename."""
+def get_default_model(model_type="AST (Foundation Transformer)"):
+    """Return default model checkpoint filename for architecture."""
     models = get_available_models(model_type)
     if not models:
         return None
-    if "crnn_best.pt" in models:
-        return "crnn_best.pt"
-    if "crnn.pt" in models:
-        return "crnn.pt"
-    # Legacy CNN default models (commented out)
-    # if "resnet18_cnn_best.pt" in models:
-    #     return "resnet18_cnn_best.pt"
-    # if "resnet18_cnn.pt" in models:
-    #     return "resnet18_cnn.pt"
+    if "AST" in model_type.upper() or "TRANSFORMER" in model_type.upper():
+        if "ast_probing_head.pt" in models:
+            return "ast_probing_head.pt"
+        return models[0]
+    elif "CRNN" in model_type.upper() or "RNN" in model_type.upper():
+        if "crnn_best.pt" in models:
+            return "crnn_best.pt"
+        if "crnn.pt" in models:
+            return "crnn.pt"
+        return models[0]
+    elif "CNN" in model_type.upper() or "RESNET" in model_type.upper():
+        if "resnet50_cnn_best.pt" in models:
+            return "resnet50_cnn_best.pt"
+        if "resnet50_cnn.pt" in models:
+            return "resnet50_cnn.pt"
+        return models[0]
     return models[0]
 
 def extract_audio(video_path):
@@ -164,142 +183,275 @@ def extract_audio(video_path):
     subprocess.run(command, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     return wav_path
 
-def run_gradio_inference(audio_path, model_filename=None, model_type="CRNN"):
+def run_gradio_inference(
+    audio_path,
+    model_filename=None,
+    model_type="AST (Foundation Transformer)",
+    isolate_stems=False,
+    p_high=0.65,
+    p_low=0.35,
+    min_duration=1.0,
+    median_filter_sec=1.5,
+    window_sec=4.0,
+    hop_sec=0.5,
+    include_nonmusic=False,
+    progress=gr.Progress()
+):
+    cols = ["Start Time", "End Time", "Duration", "Instrument", "Confidence"]
+    empty_df = pd.DataFrame(columns=cols)
     if not audio_path:
-        return pd.DataFrame(columns=["Start Time", "End Time", "Instrument", "Confidence"])
+        return empty_df, "### ℹ️ Please upload an audio or video file to run inference."
         
     video_exts = ('.mp4', '.mkv', '.mov', '.avi', '.m4v', '.mpeg4', '.webm', '.flv')
     if audio_path.lower().endswith(video_exts):
+        progress(0.02, desc="Extracting audio stream from video container...")
         audio_path = extract_audio(audio_path)
         
     config = load_config()
     
     if not model_filename:
-        model_filename = get_default_model("CRNN")
-        if not model_filename:
-            print("No CRNN model checkpoint found.")
-            return pd.DataFrame(columns=["Start Time", "End Time", "Instrument", "Confidence"])
+        model_filename = get_default_model(model_type)
             
     models_dir = config.get('paths', {}).get('models_dir', 'models')
-    model_path = os.path.join(models_dir, model_filename)
+    model_path = os.path.join(models_dir, model_filename) if model_filename else ""
     if not os.path.exists(model_path):
-        base_model_path = os.path.join(get_base_dir(), 'models', model_filename)
+        base_model_path = os.path.join(get_base_dir(), 'models', model_filename) if model_filename else ""
         if os.path.exists(base_model_path):
             model_path = base_model_path
-        else:
-            print(f"Model file not found: {model_path}")
-            return pd.DataFrame(columns=["Start Time", "End Time", "Instrument", "Confidence"])
         
     device = "mps" if torch.backends.mps.is_available() else "cpu"
     
+    def format_time(sec):
+        h = int(sec // 3600)
+        m = int((sec % 3600) // 60)
+        s = int(sec % 60)
+        return f"{h:02d}:{m:02d}:{s:02d}" if h > 0 else f"{m:02d}:{s:02d}"
+
+    # Phase 5: Stem Separation (HTDemucs) if option selected
+    if isolate_stems:
+        progress(0.08, desc="Phase 5: Isolating musical score stem (HTDemucs)...")
+        print(f"\n[Phase 5 Stem Separation] Running HTDemucs on: {audio_path}")
+        try:
+            separator = FilmStemSeparator(
+                model_name=config.get("ast", {}).get("separation", {}).get("model", "htdemucs"),
+                output_dir=config.get("ast", {}).get("paths", {}).get("stems_dir", "data/stems")
+            )
+            separated_stem = separator.separate(audio_path)
+            if os.path.exists(separated_stem):
+                audio_path = separated_stem
+                print(f"[Phase 5 Stem Separation] Clean music stem isolated: {audio_path}")
+        except Exception as stem_err:
+            print(f"[Phase 5 Stem Separation] Warning: {stem_err}. Proceeding with composite audio.")
+
     try:
-        print("\n" + "="*50)
-        print(f"EVALUATING WITH CRNN MODEL: {model_filename} on {device}")
-        print("="*50 + "\n")
-        
-        # 1. Load Model Checkpoint & Class Labels
-        checkpoint = torch.load(model_path, map_location=device, weights_only=False)
-        labels = config.get('train_labels', [
-            "sheng", "dizi", "erhu", "pipa", "suona", "guzheng",
-            "yangqin", "percussion", "strings", "woodwind", "brass", "nonmusic"
-        ])
-        
-        if isinstance(checkpoint, dict):
-            if 'classes' in checkpoint:
-                labels = checkpoint['classes']
-            state_dict = checkpoint.get('state_dict', checkpoint)
-        else:
-            state_dict = checkpoint
-                
-        idx_to_class = {i: cls_name for i, cls_name in enumerate(labels)}
-
-        def format_time(sec):
-            h = int(sec // 3600)
-            m = int((sec % 3600) // 60)
-            s = int(sec % 60)
-            return f"{h:02d}:{m:02d}:{s:02d}" if h > 0 else f"{m:02d}:{s:02d}"
-
-        # 2. Run CRNN Streaming Inference
-        crnn_cfg = config.get("crnn", {})
-        crnn_audio = crnn_cfg.get("audio", {})
-        crnn_inf = crnn_cfg.get("inference", {})
-
-        sr = int(crnn_audio.get("sample_rate", GUISettings.CRNN_SR))
-        window_sec = float(crnn_audio.get("window_sec", GUISettings.CRNN_WINDOW_SEC))
-        hop_sec = float(crnn_audio.get("hop_sec", GUISettings.CRNN_HOP_SEC))
-        batch_size = int(crnn_inf.get("batch_size", GUISettings.CRNN_BATCH_SIZE))
-        rms_threshold = float(crnn_inf.get("rms_threshold", GUISettings.CRNN_RMS_THRESHOLD))
-        conf_threshold = float(crnn_inf.get("confidence_threshold", GUISettings.CRNN_CONFIDENCE_THRESHOLD))
-        min_event_sec = float(crnn_inf.get("min_event_sec", GUISettings.CRNN_MIN_EVENT_SEC))
-        include_nonmusic = bool(crnn_inf.get("include_nonmusic", GUISettings.CRNN_INCLUDE_NONMUSIC))
-
-        model = ArchivalInstrumentCRNN(
-            num_classes=len(labels),
-            sr=sr
-        ).to(device)
-        model.load_state_dict(state_dict)
-        model.eval()
-
-        events = run_streaming_rnn_inference(
-            audio_path=audio_path,
-            model=model,
-            idx_to_class=idx_to_class,
-            sr=sr,
-            window_sec=window_sec,
-            hop_sec=hop_sec,
-            batch_size=batch_size,
-            device=device,
-            rms_threshold=rms_threshold,
-            confidence_threshold=conf_threshold,
-            min_event_sec=min_event_sec,
-            include_nonmusic=include_nonmusic,
-            config=config
-        )
-
         rows = []
-        for ev in events:
-            rows.append({
-                "Start Time": format_time(ev["start_sec"]),
-                "End Time": format_time(ev["end_sec"]),
-                "Instrument": ev["instrument"],
-                "Confidence": f"{ev['confidence']:.2f}"
-            })
-        return pd.DataFrame(rows, columns=["Start Time", "End Time", "Instrument", "Confidence"])
+        # =====================================================================
+        # 1. AST (Transformer Foundation Model Probing)
+        # =====================================================================
+        if "AST" in model_type.upper() or "TRANSFORMER" in model_type.upper():
+            print("\n" + "="*50)
+            print(f"EVALUATING WITH AST (TRANSFORMER): {model_filename} on {device}")
+            print(f"Parameters: P_high={p_high}, P_low={p_low}, MedFilter={median_filter_sec}s, MinDur={min_duration}s, Window={window_sec}s, Hop={hop_sec}s")
+            print("="*50 + "\n")
+
+            progress(0.20, desc="Phase 6: Streaming windows & extracting MERT+CLAP embeddings...")
+            scorer = ContinuousFilmScorer(
+                probing_head_checkpoint=model_path if (model_path and os.path.exists(model_path)) else "models/ast_probing_head.pt",
+                window_sec=float(window_sec),
+                hop_sec=float(hop_sec),
+                batch_size=int(config.get("ast", {}).get("scoring", {}).get("batch_size", 32)),
+                device=device
+            )
+
+            # If checkpoint not found on disk yet, initialize probing head for UI demonstration
+            if not (model_path and os.path.exists(model_path)):
+                print("Notice: AST checkpoint not found on disk yet. Running with initialized ProbingHead architecture.")
+                scorer.probing_head = ProbingHead().to(device)
+                scorer.probing_head.eval()
+
+            P, timestamps = scorer.score_audio_file(audio_path, output_probabilities_path=None)
+
+            progress(0.80, desc="Phase 7: Temporal smoothing & hysteresis post-processing...")
+            labels = config.get("train_labels", [
+                "erhu", "pipa", "dizi", "percussion", "strings_western", "sheng",
+                "suona", "guzheng", "yangqin", "woodwind", "brass", "nonmusic"
+            ])
+            processor = TemporalPostProcessor(
+                class_labels=labels,
+                p_high=float(p_high),
+                p_low=float(p_low),
+                median_filter_sec=float(median_filter_sec),
+                min_duration_sec=float(min_duration),
+                hop_sec=float(hop_sec)
+            )
+            events = processor.process(P, timestamps)
+
+            for ev in events:
+                inst_name = ev["instrument"]
+                if not include_nonmusic and inst_name.lower() in ["nonmusic", "noise", "silence"]:
+                    continue
+                dur = ev["end_time"] - ev["start_time"]
+                conf_val = ev["confidence"]
+                conf_str = f"{conf_val * 100:.1f}%" if conf_val <= 1.0 else f"{conf_val:.2f}"
+                rows.append({
+                    "Start Time": format_time(ev["start_time"]),
+                    "End Time": format_time(ev["end_time"]),
+                    "Duration": f"{dur:.1f}s",
+                    "Instrument": inst_name,
+                    "Confidence": conf_str
+                })
 
         # =====================================================================
-        # Legacy CNN Baseline Inference (Commented Out)
+        # 2. Archival CRNN (2-Channel HPSS + CQT)
         # =====================================================================
-        # else:
-        #     model = ResNet18Classifier(num_classes=len(labels)).to(device)
-        #     model.load_state_dict(state_dict)
-        #     model.eval()
-        #     
-        #     results = run_sliding_window_inference(
-        #         audio_path=audio_path,
-        #         model=model,
-        #         idx_to_class=idx_to_class,
-        #         sr=config['audio']['sample_rate'],
-        #         window_sec=config['audio']['duration_sec'],
-        #         stride_sec=GUISettings.STRIDE_SEC,
-        #         device=device,
-        #         rms_threshold=GUISettings.RMS_THRESHOLD
-        #     )
-        #     
-        #     rows = []
-        #     for start_sec, end_sec, class_str in results:
-        #         rows.append({
-        #             "Start Time": format_time(start_sec),
-        #             "End Time": format_time(end_sec),
-        #             "Instrument": class_str,
-        #             "Confidence": "-"
-        #         })
-        #     return pd.DataFrame(rows, columns=["Start Time", "End Time", "Instrument", "Confidence"])
+        elif "CRNN" in model_type.upper() or "RNN" in model_type.upper():
+            print("\n" + "="*50)
+            print(f"EVALUATING WITH CRNN MODEL: {model_filename} on {device}")
+            print(f"Parameters: ConfThreshold={p_high}, Window={window_sec}s, Hop={hop_sec}s, MinEvent={min_duration}s")
+            print("="*50 + "\n")
+            
+            if not os.path.exists(model_path):
+                print(f"CRNN model file not found: {model_path}")
+                return empty_df, f"### ⚠️ CRNN model file `{model_filename}` not found on disk."
+
+            checkpoint = torch.load(model_path, map_location=device, weights_only=False)
+            labels = config.get('train_labels', [
+                "sheng", "dizi", "erhu", "pipa", "suona", "guzheng",
+                "yangqin", "percussion", "strings", "woodwind", "brass", "nonmusic"
+            ])
+            
+            if isinstance(checkpoint, dict):
+                if 'classes' in checkpoint:
+                    labels = checkpoint['classes']
+                state_dict = checkpoint.get('state_dict', checkpoint)
+            else:
+                state_dict = checkpoint
+                    
+            idx_to_class = {i: cls_name for i, cls_name in enumerate(labels)}
+
+            crnn_cfg = config.get("crnn", {})
+            crnn_audio = crnn_cfg.get("audio", {})
+            sr = int(crnn_audio.get("sample_rate", GUISettings.CRNN_SR))
+            batch_size = int(config.get("crnn", {}).get("inference", {}).get("batch_size", GUISettings.CRNN_BATCH_SIZE))
+            rms_threshold = float(config.get("crnn", {}).get("inference", {}).get("rms_threshold", GUISettings.CRNN_RMS_THRESHOLD))
+
+            progress(0.25, desc="Loading CRNN architecture and computing CQT/HPSS features...")
+            model = ArchivalInstrumentCRNN(
+                num_classes=len(labels),
+                sr=sr
+            ).to(device)
+            model.load_state_dict(state_dict)
+            model.eval()
+
+            progress(0.50, desc="Streaming CRNN inference across audio buffers...")
+            events = run_streaming_rnn_inference(
+                audio_path=audio_path,
+                model=model,
+                idx_to_class=idx_to_class,
+                sr=sr,
+                window_sec=float(window_sec),
+                hop_sec=float(hop_sec),
+                batch_size=batch_size,
+                device=device,
+                rms_threshold=rms_threshold,
+                confidence_threshold=float(p_high),
+                min_event_sec=float(min_duration),
+                include_nonmusic=include_nonmusic,
+                config=config
+            )
+
+            for ev in events:
+                inst_name = ev["instrument"]
+                dur = ev["end_sec"] - ev["start_sec"]
+                conf_val = ev["confidence"]
+                conf_str = f"{conf_val * 100:.1f}%" if conf_val <= 1.0 else f"{conf_val:.2f}"
+                rows.append({
+                    "Start Time": format_time(ev["start_sec"]),
+                    "End Time": format_time(ev["end_sec"]),
+                    "Duration": f"{dur:.1f}s",
+                    "Instrument": inst_name,
+                    "Confidence": conf_str
+                })
+
+        # =====================================================================
+        # 3. CNN Baseline (ResNet-50 / ResNet-18)
+        # =====================================================================
+        else:
+            print("\n" + "="*50)
+            print(f"EVALUATING WITH CNN MODEL: {model_filename} on {device}")
+            print(f"Parameters: Window={window_sec}s, Stride={hop_sec}s")
+            print("="*50 + "\n")
+
+            if not os.path.exists(model_path):
+                print(f"CNN model file not found: {model_path}")
+                return empty_df, f"### ⚠️ CNN model file `{model_filename}` not found on disk."
+
+            checkpoint = torch.load(model_path, map_location=device, weights_only=False)
+            labels = config.get('train_labels', [
+                "erhu", "pipa", "dizi", "percussion", "strings_western", "sheng",
+                "suona", "guzheng", "yangqin", "woodwind", "brass", "nonmusic"
+            ])
+            if isinstance(checkpoint, dict):
+                if 'classes' in checkpoint:
+                    labels = checkpoint['classes']
+                state_dict = checkpoint.get('state_dict', checkpoint)
+            else:
+                state_dict = checkpoint
+
+            idx_to_class = {i: c for i, c in enumerate(labels)}
+            if "50" in (model_filename or "") or (state_dict and any("layer4.2" in k for k in state_dict.keys())):
+                model = ResNet50Classifier(num_classes=len(labels)).to(device)
+            else:
+                model = ResNet18Classifier(num_classes=len(labels)).to(device)
+
+            model.load_state_dict(state_dict)
+            model.eval()
+
+            cnn_cfg = config.get('cnn', {})
+            audio_cfg = cnn_cfg.get('audio', {})
+            sr = audio_cfg.get('sample_rate', 44100)
+
+            progress(0.40, desc="Running CNN sliding window inference...")
+            results = run_sliding_window_inference(
+                audio_path=audio_path,
+                model=model,
+                idx_to_class=idx_to_class,
+                sr=sr,
+                window_sec=float(window_sec),
+                stride_sec=float(hop_sec),
+                device=device,
+                rms_threshold=0.005
+            )
+
+            for start_sec, end_sec, class_str in results:
+                if not include_nonmusic and class_str.lower() in ["nonmusic", "noise", "silence"]:
+                    continue
+                dur = end_sec - start_sec
+                rows.append({
+                    "Start Time": format_time(start_sec),
+                    "End Time": format_time(end_sec),
+                    "Duration": f"{dur:.1f}s",
+                    "Instrument": class_str,
+                    "Confidence": "-"
+                })
+
+        df = pd.DataFrame(rows, columns=cols)
+        progress(1.0, desc="Done!")
         
+        if df.empty:
+            summary_md = f"### ℹ️ No acoustic events detected above confidence threshold ({p_high:.2f}).\n*Try lowering the **Detection Threshold** in the Options panel below.*"
+        else:
+            counts = df["Instrument"].value_counts().to_dict()
+            counts_str = ", ".join([f"**{k}** ({v})" for k, v in counts.items()])
+            summary_md = f"### 📊 Analysis Summary: {len(df)} events detected\n**Active Instruments:** {counts_str}"
+
+        return df, summary_md
+
     except Exception as e:
         print(f"Error during inference: {str(e)}")
         import traceback
         traceback.print_exc()
-        return pd.DataFrame(columns=["Start Time", "End Time", "Instrument", "Confidence"])
+        return empty_df, f"### ❌ Inference Error: `{str(e)}`"
 
 def export_csv(df):
     if df is None or df.empty:
@@ -310,49 +462,93 @@ def export_csv(df):
 
 # Define the Gradio Interface
 def create_app():
-    initial_models = get_available_models("CRNN")
-    initial_default = get_default_model("CRNN")
+    initial_arch = GUISettings.DEFAULT_MODEL_TYPE
+    initial_models = get_available_models(initial_arch)
+    initial_default = get_default_model(initial_arch)
     
-    with gr.Blocks(title="ML Soundtrack Classifier (Archival CRNN)") as app:
-        gr.Markdown("# ML Soundtrack Classifier (Archival CRNN)")
-        gr.Markdown("Identify musical instruments and acoustic events in archival film soundtracks using 2-channel HPSS + CQT streaming CRNN inference.")
+    with gr.Blocks(title="ML Soundtrack Classifier") as app:
+        gr.Markdown("# 🎬 ML Soundtrack Classifier: AST, CRNN & CNN")
+        gr.Markdown("Identify musical instruments and acoustic events in archival film soundtracks using **Audio Spectrogram Transformers (MERT + CLAP Foundation Probing)**, **Archival CRNN (HPSS + CQT)**, or **CNN Baselines**.")
         
         with gr.Row():
             with gr.Column(scale=1):
-                # =============================================================
-                # Legacy Model Architecture Selector (Commented Out)
-                # =============================================================
-                # model_type_radio = gr.Radio(
-                #     choices=["CNN", "CRNN"],
-                #     value="CRNN",
-                #     label="Model Architecture",
-                #     info="Choose between CNN (ResNet-18 baseline) and CRNN (Archival GRU sequence model)"
-                # )
+                model_type_radio = gr.Radio(
+                    choices=GUISettings.MODEL_TYPES,
+                    value=initial_arch,
+                    label="Model Architecture",
+                    info="Choose between AST (Foundation Transformers), Archival CRNN, or CNN Baseline"
+                )
                 model_dropdown = gr.Dropdown(
                     choices=initial_models, 
                     value=initial_default,
-                    label="Select CRNN Model Checkpoint"
+                    label=f"Select {initial_arch} Checkpoint"
                 )
                 audio_input = gr.File(
-                    file_types=["audio", "video", ".mp4", ".m4v", ".mov"], 
+                    file_types=["audio", "video", ".wav", ".mp3", ".flac", ".mp4", ".m4v", ".mov"], 
                     label="Upload Audio or Video File (.wav, .mp3, .mp4, .m4v, etc.)"
                 )
-                audio_player = gr.Audio(label="Audio Playback", interactive=False)
+                audio_player = gr.Audio(label="Audio Playback Preview", interactive=False)
                 
+                with gr.Accordion("⚙️ Inference & Pipeline Options", open=False):
+                    isolate_stems_cb = gr.Checkbox(
+                        value=False,
+                        label="Isolate Music Stem with HTDemucs (Phase 5 Stem Separation)",
+                        info="Separates dialogue (a_DX) and Foley/SFX (a_FX) from soundtrack music (a_MX) before classification. Recommended for full cinematic film soundtracks."
+                    )
+                    with gr.Row():
+                        p_high_slider = gr.Slider(
+                            minimum=0.10, maximum=0.95, value=GUISettings.AST_P_HIGH, step=0.05,
+                            label="Detection Threshold (P_high / Confidence)",
+                            info="Onset confidence required to trigger an event"
+                        )
+                        p_low_slider = gr.Slider(
+                            minimum=0.05, maximum=0.90, value=GUISettings.AST_P_LOW, step=0.05,
+                            label="Release Threshold (P_low - Hysteresis)",
+                            info="Offset threshold below which detection turns off"
+                        )
+                    with gr.Row():
+                        min_duration_slider = gr.Slider(
+                            minimum=0.1, maximum=5.0, value=GUISettings.AST_MIN_DURATION_SEC, step=0.1,
+                            label="Min Event Duration (seconds)",
+                            info="Prune false positive spikes shorter than this"
+                        )
+                        median_filter_slider = gr.Slider(
+                            minimum=0.0, maximum=5.0, value=GUISettings.AST_MEDIAN_FILTER_SEC, step=0.25,
+                            label="Median Filter Window (seconds)",
+                            info="Temporal smoothing window to bridge brief dropouts"
+                        )
+                    with gr.Row():
+                        window_sec_slider = gr.Slider(
+                            minimum=1.0, maximum=15.0, value=GUISettings.AST_WINDOW_SEC, step=0.5,
+                            label="Analysis Window (seconds)",
+                            info="Window length for feature extraction"
+                        )
+                        hop_sec_slider = gr.Slider(
+                            minimum=0.1, maximum=5.0, value=GUISettings.AST_HOP_SEC, step=0.1,
+                            label="Hop Size / Stride (seconds)",
+                            info="Sliding window temporal resolution"
+                        )
+                    include_nonmusic_cb = gr.Checkbox(
+                        value=False,
+                        label="Include Non-Music Events",
+                        info="Display speech / Foley / noise events in the results table"
+                    )
+
                 with gr.Row():
-                    infer_btn = gr.Button("Run Inference", variant="primary", scale=2)
-                    export_btn = gr.Button("Save Table to CSV", scale=1)
+                    infer_btn = gr.Button("🚀 Run Inference", variant="primary", scale=2)
+                    export_btn = gr.Button("💾 Save Table to CSV", scale=1)
                     
                 csv_download = gr.File(label="⬇ CSV Download", interactive=False, height=70)
                 
-        with gr.Row():
-            results_table = gr.Dataframe(
-                headers=["Start Time", "End Time", "Instrument", "Confidence"],
-                label="Extracted Acoustic Events",
-                interactive=False,
-                wrap=True,
-                row_count=(GUISettings.TABLE_ROW_COUNT, "dynamic")
-            )
+            with gr.Column(scale=1):
+                status_markdown = gr.Markdown("### 🎵 Ready for Inference\nUpload an audio/video file and click **Run Inference**.")
+                results_table = gr.Dataframe(
+                    headers=["Start Time", "End Time", "Duration", "Instrument", "Confidence"],
+                    label="Extracted Acoustic Events",
+                    interactive=False,
+                    wrap=True,
+                    row_count=(GUISettings.TABLE_ROW_COUNT, "dynamic")
+                )
             
         def load_audio(file_path):
             if not file_path: return None
@@ -361,19 +557,54 @@ def create_app():
                 return extract_audio(file_path)
             return file_path
             
-        # =====================================================================
-        # Legacy Architecture Toggle Callback (Commented Out)
-        # =====================================================================
-        # def on_model_type_change(selected_type):
-        #     models = get_available_models(selected_type)
-        #     default_m = get_default_model(selected_type)
-        #     return gr.Dropdown(choices=models, value=default_m)
-        #
-        # model_type_radio.change(
-        #     fn=on_model_type_change,
-        #     inputs=model_type_radio,
-        #     outputs=model_dropdown
-        # )
+        def on_model_type_change(selected_type):
+            models = get_available_models(selected_type)
+            default_m = get_default_model(selected_type)
+            
+            if "AST" in selected_type.upper():
+                return (
+                    gr.Dropdown(choices=models, value=default_m, label=f"Select {selected_type} Checkpoint"),
+                    GUISettings.AST_P_HIGH,
+                    GUISettings.AST_P_LOW,
+                    GUISettings.AST_MIN_DURATION_SEC,
+                    GUISettings.AST_MEDIAN_FILTER_SEC,
+                    GUISettings.AST_WINDOW_SEC,
+                    GUISettings.AST_HOP_SEC
+                )
+            elif "CRNN" in selected_type.upper():
+                return (
+                    gr.Dropdown(choices=models, value=default_m, label=f"Select {selected_type} Checkpoint"),
+                    GUISettings.CRNN_CONFIDENCE_THRESHOLD,
+                    0.20,
+                    GUISettings.CRNN_MIN_EVENT_SEC,
+                    1.0,
+                    GUISettings.CRNN_WINDOW_SEC,
+                    GUISettings.CRNN_HOP_SEC
+                )
+            else:
+                return (
+                    gr.Dropdown(choices=models, value=default_m, label=f"Select {selected_type} Checkpoint"),
+                    0.50,
+                    0.30,
+                    1.0,
+                    0.0,
+                    4.0,
+                    1.0
+                )
+
+        model_type_radio.change(
+            fn=on_model_type_change,
+            inputs=model_type_radio,
+            outputs=[
+                model_dropdown,
+                p_high_slider,
+                p_low_slider,
+                min_duration_slider,
+                median_filter_slider,
+                window_sec_slider,
+                hop_sec_slider
+            ]
+        )
 
         audio_input.change(
             fn=load_audio,
@@ -383,8 +614,20 @@ def create_app():
                 
         infer_btn.click(
             fn=run_gradio_inference,
-            inputs=[audio_input, model_dropdown],
-            outputs=results_table
+            inputs=[
+                audio_input,
+                model_dropdown,
+                model_type_radio,
+                isolate_stems_cb,
+                p_high_slider,
+                p_low_slider,
+                min_duration_slider,
+                median_filter_slider,
+                window_sec_slider,
+                hop_sec_slider,
+                include_nonmusic_cb
+            ],
+            outputs=[results_table, status_markdown]
         )
         
         export_btn.click(

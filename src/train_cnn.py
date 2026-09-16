@@ -22,47 +22,99 @@ import torch
 import torch.nn as nn
 import numpy as np
 import torchaudio.transforms as T
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader, Subset
 from nnAudio.features.cqt import CQT1992v2
 from soundtrack_classifier.cnn.dataset import SoundtrackCNNDataset
-from soundtrack_classifier.cnn.resnet import ResNet18Classifier
+from soundtrack_classifier.cnn.resnet import ResNet50Classifier
 import csv
 
 def load_config(config_path="config/config.yaml"):
     with open(config_path, "r") as f:
         return yaml.safe_load(f)
 
-def train(resume_checkpoint=None):
+
+def stratified_train_val_split(
+    labels: list[int],
+    val_ratio: float = 0.2,
+    seed: int = 42
+) -> tuple[list[int], list[int]]:
+    """
+    Performs a stratified train/validation split ensuring every class with >= 2
+    examples has representation in both training and validation subsets.
+    """
+    rng = np.random.RandomState(seed)
+    class_indices: dict[int, list[int]] = {}
+    for idx, label in enumerate(labels):
+        class_indices.setdefault(label, []).append(idx)
+
+    train_indices: list[int] = []
+    val_indices: list[int] = []
+
+    for _, indices in sorted(class_indices.items()):
+        indices = list(indices)
+        rng.shuffle(indices)
+        n = len(indices)
+        if n == 1:
+            train_indices.extend(indices)
+        elif n == 2:
+            train_indices.append(indices[0])
+            val_indices.append(indices[1])
+        else:
+            n_val = max(1, int(round(n * val_ratio)))
+            val_indices.extend(indices[:n_val])
+            train_indices.extend(indices[n_val:])
+
+    rng.shuffle(train_indices)
+    rng.shuffle(val_indices)
+    return train_indices, val_indices
+
+
+def train(resume_checkpoint=None, epochs_override=None, batch_size_override=None, lr_override=None):
     # 1. Load Configuration
     config = load_config()
-    train_labels = config['train_labels']
+    train_labels = config.get('train_labels', [
+        "erhu", "pipa", "dizi", "percussion", "strings_western", "sheng",
+        "suona", "guzheng", "yangqin", "woodwind", "brass", "nonmusic"
+    ])
     class_to_idx = {cls_name: i for i, cls_name in enumerate(train_labels)}
     
     device_name = "mps" if torch.backends.mps.is_available() else "cpu"
     device = torch.device(device_name)
-    print(f"Training MVP CNN on device: {device}")
+    print(f"Training ResNet-50 CNN on device: {device}")
+
+    # Extract CNN configuration with fallbacks to root keys for backwards compatibility
+    cnn_cfg = config.get('cnn', {})
+    audio_cfg = cnn_cfg.get('audio', config.get('audio', {}))
+    training_cfg = cnn_cfg.get('training', config.get('training', {}))
+    aug_cfg = cnn_cfg.get('augmentation', config.get('augmentation', {}))
+    degradation_cfg = cnn_cfg.get('degradation', config.get('degradation', None))
+    paths_cfg = cnn_cfg.get('paths', config.get('paths', {}))
+
+    sr = audio_cfg.get('sample_rate', 44100)
+    duration_sec = audio_cfg.get('duration_sec', 4.0)
 
     # 2. Dataset Setup
-    data_dir = config['paths']['data_dir']
+    data_dir = paths_cfg.get('data_dir', config.get('paths', {}).get('data_dir', 'data/train'))
     if not os.path.exists(data_dir):
-        print(f"Directory {data_dir} not found. Please run the pure slicing step first.")
+        print(f"Directory {data_dir} not found. Please run data preparation first.")
         return
 
     dataset = SoundtrackCNNDataset(
         data_dir=data_dir, 
         class_to_idx=class_to_idx,
-        sr=config['audio']['sample_rate'],
-        duration_sec=config['audio']['duration_sec'],
-        degradation_config=config.get('degradation', None)
+        sr=sr,
+        duration_sec=duration_sec,
+        degradation_config=degradation_cfg
     )
     
-    # Split into 80% train, 20% validation
-    train_size = int(0.8 * len(dataset))
-    val_size = len(dataset) - train_size
-    train_dataset, val_dataset = random_split(dataset, [train_size, val_size], generator=torch.Generator().manual_seed(42))
+    # Stratified split: guarantees minority classes are represented in both train and val
+    train_indices, val_indices = stratified_train_val_split(dataset.labels, val_ratio=0.2, seed=42)
+    train_dataset = Subset(dataset, train_indices)
+    val_dataset = Subset(dataset, val_indices)
+    print(f"Dataset split: {len(train_dataset)} train samples, {len(val_dataset)} validation samples.")
     
     # Compute class weights to address class imbalance (only from training set)
-    train_labels_list = [dataset.labels[i] for i in train_dataset.indices]
+    train_labels_list = [dataset.labels[i] for i in train_indices]
     class_counts = np.bincount(train_labels_list, minlength=len(train_labels))
     total_train_samples = len(train_labels_list)
     
@@ -74,19 +126,21 @@ def train(resume_checkpoint=None):
     median_count = np.median(class_counts)
     is_minority_mask = torch.tensor([1 if count < median_count else 0 for count in class_counts], dtype=torch.bool, device=device)
 
-    # We can safely use num_workers > 0 because CQT is not in __getitem__ anymore
+    batch_size = batch_size_override or training_cfg.get('batch_size', 16)
+    num_workers = training_cfg.get('num_workers', 4)
+
     train_loader = DataLoader(
         train_dataset, 
-        batch_size=config['training']['batch_size'], 
+        batch_size=batch_size, 
         shuffle=True, 
-        num_workers=config['training']['num_workers']
+        num_workers=num_workers
     )
     
     val_loader = DataLoader(
         val_dataset,
-        batch_size=config['training']['batch_size'],
+        batch_size=batch_size,
         shuffle=False,
-        num_workers=config['training']['num_workers']
+        num_workers=num_workers
     )
 
     # Initialize SpecAugment transforms
@@ -94,16 +148,22 @@ def train(resume_checkpoint=None):
     time_mask = T.TimeMasking(time_mask_param=30).to(device)
 
     # 3. Model & Feature Extractor Setup
+    cqt_cfg = audio_cfg.get('cqt', {})
+    fmin = float(cqt_cfg.get('fmin', 65.4))
+    n_bins = int(cqt_cfg.get('n_bins', 84))
+    bins_per_octave = int(cqt_cfg.get('bins_per_octave', 12))
+
     # Initialize nnAudio CQT to run dynamically on the GPU for the entire batch
     cqt_extractor = CQT1992v2(
-        sr=config['audio']['sample_rate'], 
-        fmin=config['audio']['cqt']['fmin'], 
-        n_bins=config['audio']['cqt']['n_bins'], 
-        bins_per_octave=config['audio']['cqt']['bins_per_octave']
+        sr=sr, 
+        fmin=fmin, 
+        n_bins=n_bins, 
+        bins_per_octave=bins_per_octave
     ).to(device)
 
-    model = ResNet18Classifier(num_classes=len(train_labels)).to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=config['training']['learning_rate'])
+    lr = lr_override or training_cfg.get('learning_rate', 0.0001)
+    model = ResNet50Classifier(num_classes=len(train_labels), pretrained=True).to(device)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     criterion = nn.CrossEntropyLoss(weight=weights_tensor)
     
     start_epoch = 0
@@ -125,12 +185,14 @@ def train(resume_checkpoint=None):
             model.load_state_dict(checkpoint)
 
     # 4. Training Loop
-    epochs = config['training']['epochs']
-    patience = config['training'].get('early_stopping_patience', 10)
+    epochs = epochs_override or training_cfg.get('epochs', 50)
+    patience = training_cfg.get('early_stopping_patience', 10)
     
-    save_path = os.path.join(config['paths']['models_dir'], "resnet18_cnn.pt")
-    metrics_path = os.path.join(config['paths']['models_dir'], "training_metrics.csv")
-    os.makedirs(config['paths']['models_dir'], exist_ok=True)
+    models_dir = paths_cfg.get('models_dir', config.get('paths', {}).get('models_dir', 'models'))
+    save_path = os.path.join(models_dir, "resnet50_cnn.pt")
+    best_save_path = os.path.join(models_dir, "resnet50_cnn_best.pt")
+    metrics_path = os.path.join(models_dir, "training_metrics.csv")
+    os.makedirs(models_dir, exist_ok=True)
     
     # Initialize CSV metrics file (Append if resuming, overwrite if fresh start)
     is_resuming = resume_checkpoint and os.path.exists(resume_checkpoint)
@@ -156,9 +218,8 @@ def train(resume_checkpoint=None):
                 cqt_batch = cqt_batch.unsqueeze(1) # Add channel dim -> [batch, 1, freq, time]
                 
                 # Apply SpecAugment for robust training
-                aug_config = config.get('augmentation', {})
-                if aug_config.get('spec_augment', False):
-                    if aug_config.get('minority_only', True):
+                if aug_cfg.get('spec_augment', False):
+                    if aug_cfg.get('minority_only', True):
                         minority_idx = is_minority_mask[labels]
                         if minority_idx.any():
                             minority_cqt = cqt_batch[minority_idx]
@@ -232,6 +293,7 @@ def train(resume_checkpoint=None):
                 'best_val_acc': best_val_acc
             }
             torch.save(checkpoint, save_path)
+            torch.save(checkpoint, best_save_path)
         else:
             epochs_no_improve += 1
             print(f"No improvement in validation accuracy. Early stopping counter: {epochs_no_improve}/{patience}")
@@ -240,11 +302,19 @@ def train(resume_checkpoint=None):
                 break
             
     print(f"Training complete! Best Validation Accuracy: {best_val_acc:.2f}%")
-    print(f"Best model saved to {save_path}")
+    print(f"Best model saved to {save_path} and {best_save_path}")
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train the Soundtrack Classifier CNN")
     parser.add_argument("--resume", type=str, default=None, help="Path to a .pt checkpoint to resume training from")
+    parser.add_argument("--epochs", type=int, default=None, help="Override number of epochs")
+    parser.add_argument("--batch-size", type=int, default=None, help="Override batch size")
+    parser.add_argument("--lr", type=float, default=None, help="Override learning rate")
     args = parser.parse_args()
     
-    train(resume_checkpoint=args.resume)
+    train(
+        resume_checkpoint=args.resume,
+        epochs_override=args.epochs,
+        batch_size_override=args.batch_size,
+        lr_override=args.lr
+    )

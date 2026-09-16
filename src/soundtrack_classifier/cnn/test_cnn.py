@@ -21,7 +21,7 @@ import numpy as np
 import soundfile as sf
 from nnAudio.features.cqt import CQT1992v2
 
-from soundtrack_classifier.cnn.resnet import ResNet18Classifier
+from soundtrack_classifier.cnn.resnet import ResNet50Classifier
 from soundtrack_classifier.ingestion.audio_utils import extract_audio_from_video
 
 
@@ -126,10 +126,10 @@ def run_evaluation(
     cuesheet_path: str,
     mapping_path: str,
     output_path: str,
-    window_sec: float = 3.0,
+    window_sec: float = 4.0,
     stride_sec: float = 1.0,
     batch_size: int = 64,
-    fmin: float = 32.7,
+    fmin: float = 65.4,
     rms_threshold: float = 0.001,
     device_str: str = None,
     save_all_windows: bool = False
@@ -175,8 +175,8 @@ def run_evaluation(
     checkpoint = torch.load(model_path, map_location=device, weights_only=False)
 
     labels = [
-        "sheng", "dizi", "erhu", "pipa", "suona", "guzheng", 
-        "yangqin", "percussion", "strings", "woodwind", "brass", "nonmusic"
+        "erhu", "pipa", "dizi", "percussion", "strings_western", "sheng", 
+        "suona", "guzheng", "yangqin", "woodwind", "brass", "nonmusic"
     ]
     if isinstance(checkpoint, dict):
         state_dict = checkpoint.get("state_dict", checkpoint)
@@ -185,8 +185,15 @@ def run_evaluation(
     else:
         state_dict = checkpoint
 
-    model = ResNet18Classifier(num_classes=len(labels)).to(device)
-    model.load_state_dict(state_dict)
+    try:
+        model = ResNet50Classifier(num_classes=len(labels)).to(device)
+        model.load_state_dict(state_dict)
+    except Exception:
+        print("[!] Checkpoint does not match ResNet-50. Attempting ResNet-18 legacy architecture...")
+        from soundtrack_classifier.cnn.resnet import ResNet18Classifier
+        model = ResNet18Classifier(num_classes=len(labels)).to(device)
+        model.load_state_dict(state_dict)
+
     model.eval()
 
     idx_to_class = {i: c for i, c in enumerate(labels)}
@@ -464,7 +471,7 @@ def run_evaluation(
 def main():
     parser = argparse.ArgumentParser(description="Evaluate CNN against Come Drink With Me cue sheet ground truth.")
     parser.add_argument("--audio", type=str, default="data/raw/Come Drink With Me.mp4", help="Path to video or audio")
-    parser.add_argument("--model", type=str, default="models/resnet18_cnn_best.pt", help="Path to model weights")
+    parser.add_argument("--model", type=str, default="models/resnet50_cnn.pt", help="Path to model weights")
     parser.add_argument(
         "--cuesheet", 
         type=str, 
@@ -483,10 +490,10 @@ def main():
         default="reports/inference_eval_come_drink_with_me.json", 
         help="Path to output JSON report"
     )
-    parser.add_argument("--window-sec", type=float, default=3.0, help="Window length in seconds")
+    parser.add_argument("--window-sec", type=float, default=4.0, help="Window length in seconds")
     parser.add_argument("--stride-sec", type=float, default=1.0, help="Stride length in seconds")
     parser.add_argument("--batch-size", type=int, default=64, help="Inference batch size")
-    parser.add_argument("--fmin", type=float, default=32.7, help="CQT minimum frequency in Hz")
+    parser.add_argument("--fmin", type=float, default=65.4, help="CQT minimum frequency in Hz")
     parser.add_argument("--rms-threshold", type=float, default=0.001, help="RMS silence cutoff threshold")
     parser.add_argument("--save-all-windows", action="store_true", help="Save all window predictions in JSON")
 

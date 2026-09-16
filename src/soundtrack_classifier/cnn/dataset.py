@@ -55,7 +55,9 @@ class SoundtrackCNNDataset(Dataset):
         
         self.degradation_config = degradation_config or {}
         self.degradation_enabled = self.degradation_config.get('enabled', False)
-        self.degradation_prob = self.degradation_config.get('probability', 0.5)
+        self.degradation_prob = float(self.degradation_config.get('probability', 0.5))
+        if self.degradation_prob > 1.0:
+            self.degradation_prob /= 100.0
         
         if self.degradation_enabled:
             self.degrader = None # Initialize lazily in __getitem__ to prevent multiprocessing pickle errors
@@ -83,11 +85,13 @@ class SoundtrackCNNDataset(Dataset):
         # Load raw audio (librosa is fast enough for small 3s files, but soundfile is faster)
         audio, _ = librosa.load(path, sr=self.sr, mono=True)
         
-        # Pad or truncate to exact length to ensure consistent batching
+        # Pad or randomly crop to exact length to ensure consistent batching
         if len(audio) < self.num_samples:
             audio = np.pad(audio, (0, self.num_samples - len(audio)))
         else:
-            audio = audio[:self.num_samples]
+            max_start = len(audio) - self.num_samples
+            start_idx = random.randint(0, max_start)
+            audio = audio[start_idx:start_idx + self.num_samples]
             
         # On-the-fly Data Augmentation: Synthetic Degradation
         if self.degradation_enabled and random.random() < self.degradation_prob:

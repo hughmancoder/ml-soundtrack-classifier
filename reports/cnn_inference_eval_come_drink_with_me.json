@@ -1,120 +1,120 @@
 {
   "metadata": {
-    "model_path": "models/resnet18_cnn_best.pt",
-    "audio_path": "data/raw/Come Drink With Me.mp4",
-    "wav_processed": "data/raw/Come Drink With Me.wav",
+    "model_path": "models/resnet50_cnn.pt",
+    "audio_path": "data/test/come-drink-with-me/Come Drink With Me.wav",
+    "wav_processed": "data/test/come-drink-with-me/Come Drink With Me.wav",
     "cuesheet_path": "data/test/come-drink-with-me/Film Music Cue Sheet for Come Drink with Me (English) - English Version.csv",
     "mapping_path": "data/test/come-drink-with-me/instrument_mapping.json",
-    "evaluation_timestamp": "2026-09-15T16:57:49.660349",
-    "elapsed_seconds": 42.12,
-    "window_sec": 3.0,
+    "evaluation_timestamp": "2026-09-16T23:01:28.527345",
+    "elapsed_seconds": 52.42,
+    "window_sec": 4.0,
     "stride_sec": 1.0,
-    "fmin": 32.7,
+    "fmin": 65.4,
     "rms_threshold": 0.001,
     "device": "mps",
     "total_audio_duration_sec": 5687.32,
-    "total_windows": 5685
+    "total_windows": 5684
   },
   "overall_metrics": {
     "music_cues": {
-      "total_windows": 2315,
-      "top1_hits": 236,
-      "top1_accuracy_percent": 10.19,
-      "top3_hits": 1654,
-      "top3_accuracy_percent": 71.45
+      "total_windows": 2346,
+      "top1_hits": 536,
+      "top1_accuracy_percent": 22.85,
+      "top3_hits": 1997,
+      "top3_accuracy_percent": 85.12
     },
     "non_music": {
-      "total_windows": 3370,
-      "correct_rejections": 2850,
-      "accuracy_percent": 84.57
+      "total_windows": 3338,
+      "correct_rejections": 2607,
+      "accuracy_percent": 78.1
     },
     "total_film": {
-      "total_windows": 5685,
-      "total_correct": 3086,
-      "overall_accuracy_percent": 54.28
+      "total_windows": 5684,
+      "total_correct": 3143,
+      "overall_accuracy_percent": 55.3
     }
   },
   "per_class_metrics": {
-    "sheng": {
-      "gt_active_windows": 716,
-      "predicted_windows": 28,
-      "hits_when_active": 16,
-      "precision_percent": 57.14,
-      "recall_detection_percent": 2.23
-    },
-    "dizi": {
-      "gt_active_windows": 1564,
-      "predicted_windows": 19,
-      "hits_when_active": 15,
-      "precision_percent": 78.95,
-      "recall_detection_percent": 0.96
-    },
     "erhu": {
-      "gt_active_windows": 1976,
-      "predicted_windows": 162,
-      "hits_when_active": 72,
-      "precision_percent": 44.44,
-      "recall_detection_percent": 3.64
-    },
-    "pipa": {
-      "gt_active_windows": 1149,
-      "predicted_windows": 5,
-      "hits_when_active": 2,
-      "precision_percent": 40.0,
-      "recall_detection_percent": 0.17
-    },
-    "suona": {
-      "gt_active_windows": 157,
-      "predicted_windows": 22,
-      "hits_when_active": 1,
-      "precision_percent": 4.55,
-      "recall_detection_percent": 0.64
-    },
-    "guzheng": {
-      "gt_active_windows": 462,
-      "predicted_windows": 11,
+      "gt_active_windows": 2000,
+      "predicted_windows": 0,
       "hits_when_active": 0,
       "precision_percent": 0.0,
       "recall_detection_percent": 0.0
     },
-    "yangqin": {
-      "gt_active_windows": 447,
+    "pipa": {
+      "gt_active_windows": 1167,
+      "predicted_windows": 0,
+      "hits_when_active": 0,
+      "precision_percent": 0.0,
+      "recall_detection_percent": 0.0
+    },
+    "dizi": {
+      "gt_active_windows": 1586,
       "predicted_windows": 0,
       "hits_when_active": 0,
       "precision_percent": 0.0,
       "recall_detection_percent": 0.0
     },
     "percussion": {
-      "gt_active_windows": 2088,
-      "predicted_windows": 195,
-      "hits_when_active": 84,
-      "precision_percent": 43.08,
-      "recall_detection_percent": 4.02
+      "gt_active_windows": 2113,
+      "predicted_windows": 1221,
+      "hits_when_active": 530,
+      "precision_percent": 43.41,
+      "recall_detection_percent": 25.08
     },
-    "strings": {
-      "gt_active_windows": 891,
-      "predicted_windows": 168,
-      "hits_when_active": 40,
-      "precision_percent": 23.81,
-      "recall_detection_percent": 4.49
+    "strings_western": {
+      "gt_active_windows": 908,
+      "predicted_windows": 0,
+      "hits_when_active": 0,
+      "precision_percent": 0.0,
+      "recall_detection_percent": 0.0
+    },
+    "sheng": {
+      "gt_active_windows": 723,
+      "predicted_windows": 2,
+      "hits_when_active": 2,
+      "precision_percent": 100.0,
+      "recall_detection_percent": 0.28
+    },
+    "suona": {
+      "gt_active_windows": 161,
+      "predicted_windows": 0,
+      "hits_when_active": 0,
+      "precision_percent": 0.0,
+      "recall_detection_percent": 0.0
+    },
+    "guzheng": {
+      "gt_active_windows": 466,
+      "predicted_windows": 33,
+      "hits_when_active": 4,
+      "precision_percent": 12.12,
+      "recall_detection_percent": 0.86
+    },
+    "yangqin": {
+      "gt_active_windows": 454,
+      "predicted_windows": 0,
+      "hits_when_active": 0,
+      "precision_percent": 0.0,
+      "recall_detection_percent": 0.0
     },
     "woodwind": {
-      "gt_active_windows": 80,
-      "predicted_windows": 238,
-      "hits_when_active": 6,
-      "precision_percent": 2.52,
-      "recall_detection_percent": 7.5
+      "gt_active_windows": 82,
+      "predicted_windows": 76,
+      "hits_when_active": 0,
+      "precision_percent": 0.0,
+      "recall_detection_percent": 0.0
     },
     "brass": {
       "gt_active_windows": 0,
-      "predicted_windows": 289,
+      "predicted_windows": 49,
       "hits_when_active": 0,
       "precision_percent": 0.0,
       "recall_detection_percent": 0.0
     },
     "nonmusic": {
       "gt_active_windows": 0,
-      "predicted_windows": 4548,
+      "predicted_windows": 4303,
       "hits_when_active": 0,
       "precision_percent": 0.0,
       "recall_detection_percent": 0.0
@@ -133,23 +133,18 @@
         "erhu",
         "percussion",
         "pipa",
-        "strings",
+        "strings_western",
         "suona"
       ],
-      "total_windows": 65,
-      "top1_hits": 19,
-      "top1_accuracy_percent": 29.23,
-      "top3_hits": 57,
-      "top3_accuracy_percent": 87.69,
+      "total_windows": 66,
+      "top1_hits": 45,
+      "top1_accuracy_percent": 68.18,
+      "top3_hits": 66,
+      "top3_accuracy_percent": 100.0,
       "prediction_distribution": {
-        "woodwind": 26,
-        "nonmusic": 16,
-        "strings": 11,
-        "dizi": 4,
-        "percussion": 3,
-        "guzheng": 3,
-        "brass": 1,
-        "suona": 1
+        "percussion": 45,
+        "woodwind": 14,
+        "nonmusic": 7
       }
     },
     {
@@ -165,14 +160,14 @@
         "percussion",
         "pipa"
       ],
-      "total_windows": 29,
-      "top1_hits": 0,
-      "top1_accuracy_percent": 0.0,
-      "top3_hits": 24,
-      "top3_accuracy_percent": 82.76,
+      "total_windows": 30,
+      "top1_hits": 4,
+      "top1_accuracy_percent": 13.33,
+      "top3_hits": 18,
+      "top3_accuracy_percent": 60.0,
       "prediction_distribution": {
-        "nonmusic": 28,
-        "woodwind": 1
+        "nonmusic": 26,
+        "percussion": 4
       }
     },
     {
@@ -184,21 +179,18 @@
       "plot_description": "Siege",
       "ground_truth_classes": [
         "erhu",
-        "strings",
+        "strings_western",
         "woodwind",
         "yangqin"
       ],
-      "total_windows": 34,
-      "top1_hits": 8,
-      "top1_accuracy_percent": 23.53,
-      "top3_hits": 18,
-      "top3_accuracy_percent": 52.94,
+      "total_windows": 35,
+      "top1_hits": 0,
+      "top1_accuracy_percent": 0.0,
+      "top3_hits": 0,
+      "top3_accuracy_percent": 0.0,
       "prediction_distribution": {
-        "nonmusic": 22,
-        "erhu": 5,
-        "brass": 3,
-        "woodwind": 3,
-        "percussion": 1
+        "nonmusic": 28,
+        "percussion": 7
       }
     },
     {
@@ -213,16 +205,16 @@
         "erhu",
         "percussion"
       ],
-      "total_windows": 70,
-      "top1_hits": 2,
-      "top1_accuracy_percent": 2.86,
-      "top3_hits": 41,
-      "top3_accuracy_percent": 58.57,
+      "total_windows": 71,
+      "top1_hits": 34,
+      "top1_accuracy_percent": 47.89,
+      "top3_hits": 66,
+      "top3_accuracy_percent": 92.96,
       "prediction_distribution": {
-        "nonmusic": 51,
-        "brass": 15,
-        "percussion": 2,
-        "woodwind": 2
+        "percussion": 34,
+        "nonmusic": 30,
+        "brass": 6,
+        "guzheng": 1
       }
     },
     {
@@ -239,17 +231,14 @@
         "pipa",
         "woodwind"
       ],
-      "total_windows": 46,
-      "top1_hits": 8,
-      "top1_accuracy_percent": 17.39,
-      "top3_hits": 42,
-      "top3_accuracy_percent": 91.3,
+      "total_windows": 47,
+      "top1_hits": 11,
+      "top1_accuracy_percent": 23.4,
+      "top3_hits": 40,
+      "top3_accuracy_percent": 85.11,
       "prediction_distribution": {
-        "nonmusic": 37,
-        "percussion": 3,
-        "woodwind": 3,
-        "pipa": 2,
-        "brass": 1
+        "nonmusic": 36,
+        "percussion": 11
       }
     },
     {
@@ -265,15 +254,14 @@
         "percussion",
         "yangqin"
       ],
-      "total_windows": 24,
-      "top1_hits": 0,
-      "top1_accuracy_percent": 0.0,
-      "top3_hits": 12,
-      "top3_accuracy_percent": 50.0,
+      "total_windows": 25,
+      "top1_hits": 13,
+      "top1_accuracy_percent": 52.0,
+      "top3_hits": 25,
+      "top3_accuracy_percent": 100.0,
       "prediction_distribution": {
-        "nonmusic": 20,
-        "brass": 2,
-        "woodwind": 2
+        "percussion": 13,
+        "nonmusic": 12
       }
     },
     {
@@ -291,14 +279,14 @@
         "pipa",
         "yangqin"
       ],
-      "total_windows": 126,
-      "top1_hits": 1,
-      "top1_accuracy_percent": 0.79,
-      "top3_hits": 106,
-      "top3_accuracy_percent": 84.13,
+      "total_windows": 127,
+      "top1_hits": 22,
+      "top1_accuracy_percent": 17.32,
+      "top3_hits": 125,
+      "top3_accuracy_percent": 98.43,
       "prediction_distribution": {
-        "nonmusic": 125,
-        "percussion": 1
+        "nonmusic": 105,
+        "percussion": 22
       }
     },
     {
@@ -312,13 +300,14 @@
         "percussion",
         "yangqin"
       ],
-      "total_windows": 28,
-      "top1_hits": 0,
-      "top1_accuracy_percent": 0.0,
-      "top3_hits": 8,
-      "top3_accuracy_percent": 28.57,
+      "total_windows": 29,
+      "top1_hits": 2,
+      "top1_accuracy_percent": 6.9,
+      "top3_hits": 29,
+      "top3_accuracy_percent": 100.0,
       "prediction_distribution": {
-        "nonmusic": 28
+        "nonmusic": 27,
+        "percussion": 2
       }
     },
     {
@@ -333,15 +322,14 @@
         "percussion",
         "yangqin"
       ],
-      "total_windows": 143,
-      "top1_hits": 0,
-      "top1_accuracy_percent": 0.0,
-      "top3_hits": 57,
-      "top3_accuracy_percent": 39.86,
+      "total_windows": 144,
+      "top1_hits": 62,
+      "top1_accuracy_percent": 43.06,
+      "top3_hits": 144,
+      "top3_accuracy_percent": 100.0,
       "prediction_distribution": {
-        "nonmusic": 140,
-        "strings": 2,
-        "sheng": 1
+        "nonmusic": 82,
+        "percussion": 62
       }
     },
     {
@@ -358,13 +346,14 @@
         "sheng",
         "yangqin"
       ],
-      "total_windows": 62,
-      "top1_hits": 0,
-      "top1_accuracy_percent": 0.0,
-      "top3_hits": 16,
-      "top3_accuracy_percent": 25.81,
+      "total_windows": 63,
+      "top1_hits": 21,
+      "top1_accuracy_percent": 33.33,
+      "top3_hits": 63,
+      "top3_accuracy_percent": 100.0,
       "prediction_distribution": {
-        "nonmusic": 62
+        "nonmusic": 42,
+        "percussion": 21
       }
     },
     {
@@ -381,20 +370,15 @@
         "pipa",
         "sheng"
       ],
-      "total_windows": 162,
-      "top1_hits": 29,
-      "top1_accuracy_percent": 17.9,
-      "top3_hits": 113,
-      "top3_accuracy_percent": 69.75,
+      "total_windows": 163,
+      "top1_hits": 39,
+      "top1_accuracy_percent": 23.93,
+      "top3_hits": 159,
+      "top3_accuracy_percent": 97.55,
       "prediction_distribution": {
-        "nonmusic": 110,
-        "erhu": 17,
-        "percussion": 12,
-        "brass": 11,
-        "strings": 7,
-        "guzheng": 2,
-        "woodwind": 2,
-        "suona": 1
+        "nonmusic": 122,
+        "percussion": 39,
+        "brass": 2
       }
     },
     {
@@ -409,20 +393,14 @@
         "erhu",
         "percussion"
       ],
-      "total_windows": 81,
-      "top1_hits": 28,
-      "top1_accuracy_percent": 34.57,
-      "top3_hits": 71,
-      "top3_accuracy_percent": 87.65,
+      "total_windows": 82,
+      "top1_hits": 3,
+      "top1_accuracy_percent": 3.66,
+      "top3_hits": 64,
+      "top3_accuracy_percent": 78.05,
       "prediction_distribution": {
-        "nonmusic": 41,
-        "percussion": 27,
-        "brass": 5,
-        "woodwind": 3,
-        "guzheng": 2,
-        "dizi": 1,
-        "suona": 1,
-        "sheng": 1
+        "nonmusic": 79,
+        "percussion": 3
       }
     },
     {
@@ -437,23 +415,19 @@
         "erhu",
         "percussion",
         "sheng",
-        "strings"
+        "strings_western"
       ],
-      "total_windows": 118,
-      "top1_hits": 37,
-      "top1_accuracy_percent": 31.36,
-      "top3_hits": 90,
-      "top3_accuracy_percent": 76.27,
+      "total_windows": 119,
+      "top1_hits": 66,
+      "top1_accuracy_percent": 55.46,
+      "top3_hits": 114,
+      "top3_accuracy_percent": 95.8,
       "prediction_distribution": {
-        "nonmusic": 48,
-        "woodwind": 24,
-        "erhu": 19,
-        "strings": 8,
-        "sheng": 7,
+        "percussion": 65,
+        "nonmusic": 45,
         "brass": 6,
-        "dizi": 3,
         "guzheng": 2,
-        "suona": 1
+        "sheng": 1
       }
     },
     {
@@ -468,16 +442,16 @@
         "erhu",
         "percussion",
         "sheng",
-        "strings"
+        "strings_western"
       ],
-      "total_windows": 38,
-      "top1_hits": 0,
-      "top1_accuracy_percent": 0.0,
-      "top3_hits": 28,
-      "top3_accuracy_percent": 73.68,
+      "total_windows": 39,
+      "top1_hits": 1,
+      "top1_accuracy_percent": 2.56,
+      "top3_hits": 39,
+      "top3_accuracy_percent": 100.0,
       "prediction_distribution": {
-        "nonmusic": 36,
-        "brass": 2
+        "nonmusic": 38,
+        "percussion": 1
       }
     },
     {
@@ -493,17 +467,14 @@
         "percussion",
         "pipa"
       ],
-      "total_windows": 95,
-      "top1_hits": 1,
-      "top1_accuracy_percent": 1.05,
-      "top3_hits": 61,
-      "top3_accuracy_percent": 64.21,
+      "total_windows": 96,
+      "top1_hits": 23,
+      "top1_accuracy_percent": 23.96,
+      "top3_hits": 92,
+      "top3_accuracy_percent": 95.83,
       "prediction_distribution": {
-        "nonmusic": 71,
-        "brass": 9,
-        "strings": 8,
-        "woodwind": 6,
-        "percussion": 1
+        "nonmusic": 73,
+        "percussion": 23
       }
     },
     {
@@ -520,21 +491,17 @@
         "percussion",
         "sheng"
       ],
-      "total_windows": 137,
-      "top1_hits": 22,
-      "top1_accuracy_percent": 16.06,
-      "top3_hits": 121,
-      "top3_accuracy_percent": 88.32,
+      "total_windows": 138,
+      "top1_hits": 45,
+      "top1_accuracy_percent": 32.61,
+      "top3_hits": 136,
+      "top3_accuracy_percent": 98.55,
       "prediction_distribution": {
-        "woodwind": 42,
-        "brass": 40,
-        "nonmusic": 23,
-        "erhu": 12,
-        "strings": 5,
-        "sheng": 5,
-        "suona": 5,
-        "dizi": 3,
-        "percussion": 2
+        "nonmusic": 79,
+        "percussion": 40,
+        "brass": 14,
+        "guzheng": 4,
+        "sheng": 1
       }
     },
     {
@@ -549,17 +516,17 @@
         "percussion",
         "pipa"
       ],
-      "total_windows": 133,
-      "top1_hits": 13,
-      "top1_accuracy_percent": 9.77,
-      "top3_hits": 102,
-      "top3_accuracy_percent": 76.69,
+      "total_windows": 134,
+      "top1_hits": 41,
+      "top1_accuracy_percent": 30.6,
+      "top3_hits": 128,
+      "top3_accuracy_percent": 95.52,
       "prediction_distribution": {
-        "nonmusic": 90,
-        "brass": 29,
-        "erhu": 7,
-        "percussion": 6,
-        "strings": 1
+        "nonmusic": 73,
+        "percussion": 41,
+        "guzheng": 14,
+        "woodwind": 5,
+        "brass": 1
       }
     },
     {
@@ -575,19 +542,18 @@
         "percussion",
         "pipa",
         "sheng",
-        "strings"
+        "strings_western"
       ],
-      "total_windows": 157,
-      "top1_hits": 5,
-      "top1_accuracy_percent": 3.18,
-      "top3_hits": 150,
-      "top3_accuracy_percent": 95.54,
+      "total_windows": 158,
+      "top1_hits": 8,
+      "top1_accuracy_percent": 5.06,
+      "top3_hits": 122,
+      "top3_accuracy_percent": 77.22,
       "prediction_distribution": {
-        "nonmusic": 146,
-        "brass": 3,
-        "strings": 3,
-        "woodwind": 3,
-        "percussion": 2
+        "nonmusic": 147,
+        "percussion": 8,
+        "woodwind": 2,
+        "brass": 1
       }
     },
     {
@@ -604,17 +570,13 @@
         "pipa",
         "sheng"
       ],
-      "total_windows": 42,
-      "top1_hits": 8,
-      "top1_accuracy_percent": 19.05,
-      "top3_hits": 38,
-      "top3_accuracy_percent": 90.48,
+      "total_windows": 43,
+      "top1_hits": 0,
+      "top1_accuracy_percent": 0.0,
+      "top3_hits": 43,
+      "top3_accuracy_percent": 100.0,
       "prediction_distribution": {
-        "nonmusic": 20,
-        "strings": 8,
-        "suona": 6,
-        "erhu": 4,
-        "sheng": 4
+        "nonmusic": 43
       }
     },
     {
@@ -627,13 +589,13 @@
       "ground_truth_classes": [
         "percussion"
       ],
-      "total_windows": 41,
+      "total_windows": 42,
       "top1_hits": 0,
       "top1_accuracy_percent": 0.0,
-      "top3_hits": 25,
-      "top3_accuracy_percent": 60.98,
+      "top3_hits": 42,
+      "top3_accuracy_percent": 100.0,
       "prediction_distribution": {
-        "nonmusic": 41
+        "nonmusic": 42
       }
     },
     {
@@ -645,17 +607,16 @@
       "plot_description": "The Drunken Swordsman sucks out the venom for Golden Swallow",
       "ground_truth_classes": [
         "erhu",
-        "strings"
+        "strings_western"
       ],
-      "total_windows": 76,
-      "top1_hits": 12,
-      "top1_accuracy_percent": 15.79,
-      "top3_hits": 30,
-      "top3_accuracy_percent": 39.47,
+      "total_windows": 77,
+      "top1_hits": 0,
+      "top1_accuracy_percent": 0.0,
+      "top3_hits": 4,
+      "top3_accuracy_percent": 5.19,
       "prediction_distribution": {
-        "nonmusic": 64,
-        "strings": 8,
-        "erhu": 4
+        "nonmusic": 70,
+        "woodwind": 7
       }
     },
     {
@@ -670,18 +631,17 @@
         "erhu",
         "percussion",
         "pipa",
-        "strings"
+        "strings_western"
       ],
-      "total_windows": 17,
-      "top1_hits": 8,
-      "top1_accuracy_percent": 47.06,
-      "top3_hits": 15,
-      "top3_accuracy_percent": 88.24,
+      "total_windows": 18,
+      "top1_hits": 1,
+      "top1_accuracy_percent": 5.56,
+      "top3_hits": 18,
+      "top3_accuracy_percent": 100.0,
       "prediction_distribution": {
-        "strings": 6,
-        "nonmusic": 5,
-        "suona": 4,
-        "erhu": 2
+        "nonmusic": 16,
+        "woodwind": 1,
+        "percussion": 1
       }
     },
     {
@@ -694,17 +654,15 @@
       "ground_truth_classes": [
         "erhu",
         "pipa",
-        "strings"
+        "strings_western"
       ],
-      "total_windows": 22,
+      "total_windows": 23,
       "top1_hits": 0,
       "top1_accuracy_percent": 0.0,
-      "top3_hits": 12,
-      "top3_accuracy_percent": 54.55,
+      "top3_hits": 0,
+      "top3_accuracy_percent": 0.0,
       "prediction_distribution": {
-        "nonmusic": 10,
-        "brass": 8,
-        "percussion": 4
+        "nonmusic": 23
       }
     },
     {
@@ -717,16 +675,17 @@
       "ground_truth_classes": [
         "dizi",
         "pipa",
-        "strings",
+        "strings_western",
         "suona"
       ],
-      "total_windows": 31,
+      "total_windows": 32,
       "top1_hits": 0,
       "top1_accuracy_percent": 0.0,
-      "top3_hits": 19,
-      "top3_accuracy_percent": 61.29,
+      "top3_hits": 1,
+      "top3_accuracy_percent": 3.12,
       "prediction_distribution": {
-        "nonmusic": 31
+        "nonmusic": 31,
+        "percussion": 1
       }
     },
     {
@@ -740,19 +699,18 @@
         "dizi",
         "erhu",
         "pipa",
-        "strings"
+        "strings_western"
       ],
-      "total_windows": 33,
-      "top1_hits": 3,
-      "top1_accuracy_percent": 9.09,
-      "top3_hits": 29,
-      "top3_accuracy_percent": 87.88,
+      "total_windows": 34,
+      "top1_hits": 0,
+      "top1_accuracy_percent": 0.0,
+      "top3_hits": 1,
+      "top3_accuracy_percent": 2.94,
       "prediction_distribution": {
-        "brass": 24,
-        "dizi": 3,
-        "nonmusic": 3,
-        "woodwind": 2,
-        "percussion": 1
+        "woodwind": 21,
+        "nonmusic": 6,
+        "percussion": 4,
+        "brass": 3
       }
     },
     {
@@ -767,15 +725,15 @@
         "erhu",
         "percussion",
         "pipa",
-        "strings"
+        "strings_western"
       ],
-      "total_windows": 68,
+      "total_windows": 69,
       "top1_hits": 0,
       "top1_accuracy_percent": 0.0,
-      "top3_hits": 65,
-      "top3_accuracy_percent": 95.59,
+      "top3_hits": 69,
+      "top3_accuracy_percent": 100.0,
       "prediction_distribution": {
-        "nonmusic": 68
+        "nonmusic": 69
       }
     },
     {
@@ -789,15 +747,15 @@
         "dizi",
         "percussion",
         "pipa",
-        "strings"
+        "strings_western"
       ],
-      "total_windows": 16,
+      "total_windows": 17,
       "top1_hits": 0,
       "top1_accuracy_percent": 0.0,
-      "top3_hits": 15,
-      "top3_accuracy_percent": 93.75,
+      "top3_hits": 17,
+      "top3_accuracy_percent": 100.0,
       "prediction_distribution": {
-        "nonmusic": 16
+        "nonmusic": 17
       }
     },
     {
@@ -810,16 +768,16 @@
       "ground_truth_classes": [
         "dizi",
         "pipa",
-        "strings",
+        "strings_western",
         "suona"
       ],
-      "total_windows": 31,
+      "total_windows": 32,
       "top1_hits": 0,
       "top1_accuracy_percent": 0.0,
-      "top3_hits": 12,
-      "top3_accuracy_percent": 38.71,
+      "top3_hits": 0,
+      "top3_accuracy_percent": 0.0,
       "prediction_distribution": {
-        "nonmusic": 30,
+        "nonmusic": 31,
         "percussion": 1
       }
     },
@@ -833,14 +791,14 @@
       "ground_truth_classes": [
         "percussion"
       ],
-      "total_windows": 75,
-      "top1_hits": 2,
-      "top1_accuracy_percent": 2.67,
-      "top3_hits": 35,
-      "top3_accuracy_percent": 46.67,
+      "total_windows": 76,
+      "top1_hits": 10,
+      "top1_accuracy_percent": 13.16,
+      "top3_hits": 75,
+      "top3_accuracy_percent": 98.68,
       "prediction_distribution": {
-        "nonmusic": 73,
-        "percussion": 2
+        "nonmusic": 66,
+        "percussion": 10
       }
     },
     {
@@ -853,20 +811,17 @@
       "ground_truth_classes": [
         "dizi",
         "percussion",
-        "strings"
+        "strings_western"
       ],
-      "total_windows": 79,
-      "top1_hits": 8,
-      "top1_accuracy_percent": 10.13,
-      "top3_hits": 58,
-      "top3_accuracy_percent": 73.42,
+      "total_windows": 80,
+      "top1_hits": 55,
+      "top1_accuracy_percent": 68.75,
+      "top3_hits": 80,
+      "top3_accuracy_percent": 100.0,
       "prediction_distribution": {
-        "nonmusic": 63,
-        "brass": 5,
-        "percussion": 4,
-        "strings": 3,
-        "woodwind": 3,
-        "dizi": 1
+        "percussion": 55,
+        "nonmusic": 24,
+        "woodwind": 1
       }
     },
     {
@@ -881,15 +836,15 @@
         "erhu",
         "percussion",
         "pipa",
-        "strings"
+        "strings_western"
       ],
-      "total_windows": 38,
+      "total_windows": 39,
       "top1_hits": 1,
-      "top1_accuracy_percent": 2.63,
-      "top3_hits": 37,
-      "top3_accuracy_percent": 97.37,
+      "top1_accuracy_percent": 2.56,
+      "top3_hits": 39,
+      "top3_accuracy_percent": 100.0,
       "prediction_distribution": {
-        "nonmusic": 37,
+        "nonmusic": 38,
         "percussion": 1
       }
     },
@@ -905,14 +860,14 @@
         "erhu",
         "percussion"
       ],
-      "total_windows": 130,
-      "top1_hits": 13,
-      "top1_accuracy_percent": 10.0,
-      "top3_hits": 90,
-      "top3_accuracy_percent": 69.23,
+      "total_windows": 131,
+      "top1_hits": 9,
+      "top1_accuracy_percent": 6.87,
+      "top3_hits": 127,
+      "top3_accuracy_percent": 96.95,
       "prediction_distribution": {
-        "nonmusic": 117,
-        "percussion": 13
+        "nonmusic": 122,
+        "percussion": 9
       }
     },
     {
@@ -926,17 +881,15 @@
         "dizi",
         "percussion",
         "pipa",
-        "strings"
+        "strings_western"
       ],
-      "total_windows": 38,
-      "top1_hits": 5,
-      "top1_accuracy_percent": 13.16,
-      "top3_hits": 34,
-      "top3_accuracy_percent": 89.47,
+      "total_windows": 39,
+      "top1_hits": 0,
+      "top1_accuracy_percent": 0.0,
+      "top3_hits": 23,
+      "top3_accuracy_percent": 58.97,
       "prediction_distribution": {
-        "nonmusic": 18,
-        "erhu": 15,
-        "percussion": 5
+        "nonmusic": 39
       }
     },
     {
@@ -950,20 +903,18 @@
         "dizi",
         "erhu",
         "percussion",
-        "strings",
+        "strings_western",
         "suona",
         "yangqin"
       ],
-      "total_windows": 30,
-      "top1_hits": 3,
-      "top1_accuracy_percent": 10.0,
-      "top3_hits": 23,
-      "top3_accuracy_percent": 76.67,
+      "total_windows": 31,
+      "top1_hits": 21,
+      "top1_accuracy_percent": 67.74,
+      "top3_hits": 31,
+      "top3_accuracy_percent": 100.0,
       "prediction_distribution": {
-        "woodwind": 19,
-        "nonmusic": 8,
-        "erhu": 2,
-        "strings": 1
+        "percussion": 21,
+        "nonmusic": 10
       }
     }
   ],
@@ -971,16 +922,16 @@
     {
       "window_index": 0,
       "start_sec": 0.0,
-      "end_sec": 3.0,
-      "mid_sec": 1.5,
+      "end_sec": 4.0,
+      "mid_sec": 2.0,
       "rms_energy": 0.0,
       "is_silent": true,
       "predicted_class": "nonmusic",
       "confidence": 1.0,
       "top3_classes": [
         "nonmusic",
-        "percussion",
-        "suona"
+        "nonmusic",
+        "brass"
       ],
       "ground_truth_classes": [
         "nonmusic"
@@ -992,16 +943,16 @@
     {
       "window_index": 1,
       "start_sec": 1.0,
-      "end_sec": 4.0,
-      "mid_sec": 2.5,
+      "end_sec": 5.0,
+      "mid_sec": 3.0,
       "rms_energy": 0.0,
       "is_silent": true,
       "predicted_class": "nonmusic",
       "confidence": 1.0,
       "top3_classes": [
         "nonmusic",
-        "percussion",
-        "suona"
+        "nonmusic",
+        "brass"
       ],
       "ground_truth_classes": [
         "nonmusic"
@@ -1013,16 +964,16 @@
     {
       "window_index": 2,
       "start_sec": 2.0,
-      "end_sec": 5.0,
-      "mid_sec": 3.5,
+      "end_sec": 6.0,
+      "mid_sec": 4.0,
       "rms_energy": 0.0,
       "is_silent": true,
       "predicted_class": "nonmusic",
       "confidence": 1.0,
       "top3_classes": [
         "nonmusic",
-        "percussion",
-        "suona"
+        "nonmusic",
+        "brass"
       ],
       "ground_truth_classes": [
         "nonmusic"
@@ -1034,16 +985,16 @@
     {
       "window_index": 3,
       "start_sec": 3.0,
-      "end_sec": 6.0,
-      "mid_sec": 4.5,
+      "end_sec": 7.0,
+      "mid_sec": 5.0,
       "rms_energy": 0.0,
       "is_silent": true,
       "predicted_class": "nonmusic",
       "confidence": 1.0,
       "top3_classes": [
         "nonmusic",
-        "percussion",
-        "suona"
+        "nonmusic",
+        "brass"
       ],
       "ground_truth_classes": [
         "nonmusic"
@@ -1055,16 +1006,16 @@
     {
       "window_index": 4,
       "start_sec": 4.0,
-      "end_sec": 7.0,
-      "mid_sec": 5.5,
+      "end_sec": 8.0,
+      "mid_sec": 6.0,
       "rms_energy": 0.0,
       "is_silent": true,
       "predicted_class": "nonmusic",
       "confidence": 1.0,
       "top3_classes": [
         "nonmusic",
-        "percussion",
-        "suona"
+        "nonmusic",
+        "brass"
       ],
       "ground_truth_classes": [
         "nonmusic"
@@ -1076,16 +1027,16 @@
     {
       "window_index": 5,
       "start_sec": 5.0,
-      "end_sec": 8.0,
-      "mid_sec": 6.5,
+      "end_sec": 9.0,
+      "mid_sec": 7.0,
       "rms_energy": 0.0,
       "is_silent": true,
       "predicted_class": "nonmusic",
       "confidence": 1.0,
       "top3_classes": [
         "nonmusic",
-        "percussion",
-        "suona"
+        "nonmusic",
+        "brass"
       ],
       "ground_truth_classes": [
         "nonmusic"
@@ -1097,16 +1048,16 @@
     {
       "window_index": 6,
       "start_sec": 6.0,
-      "end_sec": 9.0,
-      "mid_sec": 7.5,
+      "end_sec": 10.0,
+      "mid_sec": 8.0,
       "rms_energy": 0.0,
       "is_silent": true,
       "predicted_class": "nonmusic",
       "confidence": 1.0,
       "top3_classes": [
         "nonmusic",
-        "percussion",
-        "suona"
+        "nonmusic",
+        "brass"
       ],
       "ground_truth_classes": [
         "nonmusic"
@@ -1118,16 +1069,16 @@
     {
       "window_index": 7,
       "start_sec": 7.0,
-      "end_sec": 10.0,
-      "mid_sec": 8.5,
+      "end_sec": 11.0,
+      "mid_sec": 9.0,
       "rms_energy": 0.0,
       "is_silent": true,
       "predicted_class": "nonmusic",
       "confidence": 1.0,
       "top3_classes": [
         "nonmusic",
-        "percussion",
-        "suona"
+        "nonmusic",
+        "brass"
       ],
       "ground_truth_classes": [
         "nonmusic"
@@ -1139,16 +1090,16 @@
     {
       "window_index": 8,
       "start_sec": 8.0,
-      "end_sec": 11.0,
-      "mid_sec": 9.5,
+      "end_sec": 12.0,
+      "mid_sec": 10.0,
       "rms_energy": 0.0,
       "is_silent": true,
       "predicted_class": "nonmusic",
       "confidence": 1.0,
       "top3_classes": [
         "nonmusic",
-        "percussion",
-        "suona"
+        "nonmusic",
+        "brass"
       ],
       "ground_truth_classes": [
         "nonmusic"
@@ -1160,16 +1111,16 @@
     {
       "window_index": 9,
       "start_sec": 9.0,
-      "end_sec": 12.0,
-      "mid_sec": 10.5,
-      "rms_energy": 0.0,
-      "is_silent": true,
+      "end_sec": 13.0,
+      "mid_sec": 11.0,
+      "rms_energy": 0.009732,
+      "is_silent": false,
       "predicted_class": "nonmusic",
-      "confidence": 1.0,
+      "confidence": 0.3273,
       "top3_classes": [
         "nonmusic",
-        "percussion",
-        "suona"
+        "brass",
+        "percussion"
       ],
       "ground_truth_classes": [
         "nonmusic"
@@ -1181,121 +1132,121 @@
     {
       "window_index": 10,
       "start_sec": 10.0,
-      "end_sec": 13.0,
-      "mid_sec": 11.5,
-      "rms_energy": 0.011237,
+      "end_sec": 14.0,
+      "mid_sec": 12.0,
+      "rms_energy": 0.010848,
       "is_silent": false,
-      "predicted_class": "percussion",
-      "confidence": 0.9581,
+      "predicted_class": "nonmusic",
+      "confidence": 0.2219,
       "top3_classes": [
-        "percussion",
-        "erhu",
+        "nonmusic",
+        "brass",
+        "guzheng"
+      ],
+      "ground_truth_classes": [
+        "nonmusic"
+      ],
+      "is_music_cue": false,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 11,
+      "start_sec": 11.0,
+      "end_sec": 15.0,
+      "mid_sec": 13.0,
+      "rms_energy": 0.011511,
+      "is_silent": false,
+      "predicted_class": "nonmusic",
+      "confidence": 0.1869,
+      "top3_classes": [
+        "nonmusic",
+        "guzheng",
         "brass"
       ],
       "ground_truth_classes": [
         "nonmusic"
       ],
       "is_music_cue": false,
-      "is_hit": false,
-      "is_top3_hit": false
-    },
-    {
-      "window_index": 11,
-      "start_sec": 11.0,
-      "end_sec": 14.0,
-      "mid_sec": 12.5,
-      "rms_energy": 0.012526,
-      "is_silent": false,
-      "predicted_class": "percussion",
-      "confidence": 0.8963,
-      "top3_classes": [
-        "percussion",
-        "strings",
-        "woodwind"
-      ],
-      "ground_truth_classes": [
-        "nonmusic"
-      ],
-      "is_music_cue": false,
-      "is_hit": false,
-      "is_top3_hit": false
+      "is_hit": true,
+      "is_top3_hit": true
     },
     {
       "window_index": 12,
       "start_sec": 12.0,
-      "end_sec": 15.0,
-      "mid_sec": 13.5,
-      "rms_energy": 0.013292,
-      "is_silent": false,
-      "predicted_class": "woodwind",
-      "confidence": 0.7947,
-      "top3_classes": [
-        "woodwind",
-        "percussion",
-        "strings"
-      ],
-      "ground_truth_classes": [
-        "nonmusic"
-      ],
-      "is_music_cue": false,
-      "is_hit": false,
-      "is_top3_hit": false
-    },
-    {
-      "window_index": 13,
-      "start_sec": 13.0,
       "end_sec": 16.0,
-      "mid_sec": 14.5,
-      "rms_energy": 0.007689,
+      "mid_sec": 14.0,
+      "rms_energy": 0.011792,
       "is_silent": false,
-      "predicted_class": "woodwind",
-      "confidence": 0.9729,
+      "predicted_class": "nonmusic",
+      "confidence": 0.2203,
       "top3_classes": [
-        "woodwind",
-        "percussion",
-        "strings"
-      ],
-      "ground_truth_classes": [
-        "nonmusic"
-      ],
-      "is_music_cue": false,
-      "is_hit": false,
-      "is_top3_hit": false
-    },
-    {
-      "window_index": 14,
-      "start_sec": 14.0,
-      "end_sec": 17.0,
-      "mid_sec": 15.5,
-      "rms_energy": 0.009898,
-      "is_silent": false,
-      "predicted_class": "woodwind",
-      "confidence": 0.9995,
-      "top3_classes": [
-        "woodwind",
-        "strings",
+        "nonmusic",
+        "brass",
         "percussion"
       ],
       "ground_truth_classes": [
         "nonmusic"
       ],
       "is_music_cue": false,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 13,
+      "start_sec": 13.0,
+      "end_sec": 17.0,
+      "mid_sec": 15.0,
+      "rms_energy": 0.009821,
+      "is_silent": false,
+      "predicted_class": "nonmusic",
+      "confidence": 0.2386,
+      "top3_classes": [
+        "nonmusic",
+        "percussion",
+        "brass"
+      ],
+      "ground_truth_classes": [
+        "nonmusic"
+      ],
+      "is_music_cue": false,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 14,
+      "start_sec": 14.0,
+      "end_sec": 18.0,
+      "mid_sec": 16.0,
+      "rms_energy": 0.020239,
+      "is_silent": false,
+      "predicted_class": "percussion",
+      "confidence": 0.2671,
+      "top3_classes": [
+        "percussion",
+        "nonmusic",
+        "guzheng"
+      ],
+      "ground_truth_classes": [
+        "nonmusic"
+      ],
+      "is_music_cue": false,
       "is_hit": false,
-      "is_top3_hit": false
+      "is_top3_hit": true
     },
     {
       "window_index": 15,
       "start_sec": 15.0,
-      "end_sec": 18.0,
-      "mid_sec": 16.5,
-      "rms_energy": 0.022943,
+      "end_sec": 19.0,
+      "mid_sec": 17.0,
+      "rms_energy": 0.038798,
       "is_silent": false,
       "predicted_class": "woodwind",
-      "confidence": 0.9974,
+      "confidence": 0.3013,
       "top3_classes": [
         "woodwind",
-        "strings",
-        "dizi"
+        "brass",
+        "guzheng"
       ],
       "ground_truth_classes": [
         "nonmusic"
@@ -1307,16 +1258,16 @@
     {
       "window_index": 16,
       "start_sec": 16.0,
-      "end_sec": 19.0,
-      "mid_sec": 17.5,
-      "rms_energy": 0.044703,
+      "end_sec": 20.0,
+      "mid_sec": 18.0,
+      "rms_energy": 0.060512,
       "is_silent": false,
       "predicted_class": "woodwind",
-      "confidence": 0.9982,
+      "confidence": 0.7248,
       "top3_classes": [
         "woodwind",
-        "strings",
-        "dizi"
+        "brass",
+        "sheng"
       ],
       "ground_truth_classes": [
         "nonmusic"
@@ -1328,16 +1279,16 @@
     {
       "window_index": 17,
       "start_sec": 17.0,
-      "end_sec": 20.0,
-      "mid_sec": 18.5,
-      "rms_energy": 0.069374,
+      "end_sec": 21.0,
+      "mid_sec": 19.0,
+      "rms_energy": 0.060807,
       "is_silent": false,
       "predicted_class": "woodwind",
-      "confidence": 0.9985,
+      "confidence": 0.6682,
       "top3_classes": [
         "woodwind",
-        "strings",
-        "dizi"
+        "brass",
+        "sheng"
       ],
       "ground_truth_classes": [
         "nonmusic"
@@ -1349,16 +1300,16 @@
     {
       "window_index": 18,
       "start_sec": 18.0,
-      "end_sec": 21.0,
-      "mid_sec": 19.5,
-      "rms_energy": 0.066947,
+      "end_sec": 22.0,
+      "mid_sec": 20.0,
+      "rms_energy": 0.057978,
       "is_silent": false,
       "predicted_class": "woodwind",
-      "confidence": 0.9319,
+      "confidence": 0.4461,
       "top3_classes": [
         "woodwind",
-        "dizi",
-        "strings"
+        "brass",
+        "strings_western"
       ],
       "ground_truth_classes": [
         "nonmusic"
@@ -1370,16 +1321,16 @@
     {
       "window_index": 19,
       "start_sec": 19.0,
-      "end_sec": 22.0,
-      "mid_sec": 20.5,
-      "rms_energy": 0.054783,
+      "end_sec": 23.0,
+      "mid_sec": 21.0,
+      "rms_energy": 0.048752,
       "is_silent": false,
-      "predicted_class": "dizi",
-      "confidence": 0.3455,
+      "predicted_class": "brass",
+      "confidence": 0.2554,
       "top3_classes": [
-        "dizi",
+        "brass",
         "percussion",
-        "brass"
+        "woodwind"
       ],
       "ground_truth_classes": [
         "nonmusic"
@@ -1391,162 +1342,323 @@
     {
       "window_index": 20,
       "start_sec": 20.0,
-      "end_sec": 23.0,
-      "mid_sec": 21.5,
-      "rms_energy": 0.016883,
+      "end_sec": 24.0,
+      "mid_sec": 22.0,
+      "rms_energy": 0.017816,
       "is_silent": false,
-      "predicted_class": "nonmusic",
-      "confidence": 0.9372,
+      "predicted_class": "percussion",
+      "confidence": 0.4645,
       "top3_classes": [
+        "percussion",
         "nonmusic",
-        "brass",
-        "percussion"
+        "guzheng"
       ],
       "ground_truth_classes": [
         "nonmusic"
       ],
       "is_music_cue": false,
-      "is_hit": true,
+      "is_hit": false,
       "is_top3_hit": true
     },
     {
       "window_index": 21,
       "start_sec": 21.0,
-      "end_sec": 24.0,
-      "mid_sec": 22.5,
-      "rms_energy": 0.017493,
+      "end_sec": 25.0,
+      "mid_sec": 23.0,
+      "rms_energy": 0.021204,
       "is_silent": false,
-      "predicted_class": "nonmusic",
-      "confidence": 0.9999,
+      "predicted_class": "percussion",
+      "confidence": 0.6077,
       "top3_classes": [
+        "percussion",
         "nonmusic",
-        "brass",
-        "woodwind"
+        "guzheng"
       ],
       "ground_truth_classes": [
         "nonmusic"
       ],
       "is_music_cue": false,
-      "is_hit": true,
+      "is_hit": false,
       "is_top3_hit": true
     },
     {
       "window_index": 22,
       "start_sec": 22.0,
-      "end_sec": 25.0,
-      "mid_sec": 23.5,
-      "rms_energy": 0.024482,
+      "end_sec": 26.0,
+      "mid_sec": 24.0,
+      "rms_energy": 0.023422,
       "is_silent": false,
-      "predicted_class": "nonmusic",
-      "confidence": 0.9951,
+      "predicted_class": "percussion",
+      "confidence": 0.5292,
       "top3_classes": [
+        "percussion",
         "nonmusic",
-        "brass",
-        "strings"
+        "guzheng"
       ],
       "ground_truth_classes": [
         "nonmusic"
       ],
       "is_music_cue": false,
-      "is_hit": true,
+      "is_hit": false,
       "is_top3_hit": true
     },
     {
       "window_index": 23,
       "start_sec": 23.0,
-      "end_sec": 26.0,
-      "mid_sec": 24.5,
-      "rms_energy": 0.023743,
+      "end_sec": 27.0,
+      "mid_sec": 25.0,
+      "rms_energy": 0.02749,
       "is_silent": false,
-      "predicted_class": "nonmusic",
-      "confidence": 0.9955,
+      "predicted_class": "percussion",
+      "confidence": 0.5559,
       "top3_classes": [
+        "percussion",
         "nonmusic",
-        "brass",
-        "strings"
+        "guzheng"
       ],
       "ground_truth_classes": [
         "nonmusic"
       ],
       "is_music_cue": false,
-      "is_hit": true,
+      "is_hit": false,
       "is_top3_hit": true
     },
     {
       "window_index": 24,
       "start_sec": 24.0,
-      "end_sec": 27.0,
-      "mid_sec": 25.5,
-      "rms_energy": 0.029485,
+      "end_sec": 28.0,
+      "mid_sec": 26.0,
+      "rms_energy": 0.031687,
       "is_silent": false,
-      "predicted_class": "nonmusic",
-      "confidence": 0.9881,
+      "predicted_class": "percussion",
+      "confidence": 0.3788,
       "top3_classes": [
+        "percussion",
         "nonmusic",
-        "brass",
-        "strings"
+        "guzheng"
       ],
       "ground_truth_classes": [
         "nonmusic"
       ],
       "is_music_cue": false,
-      "is_hit": true,
+      "is_hit": false,
       "is_top3_hit": true
     },
     {
       "window_index": 25,
       "start_sec": 25.0,
-      "end_sec": 28.0,
-      "mid_sec": 26.5,
-      "rms_energy": 0.032331,
+      "end_sec": 29.0,
+      "mid_sec": 27.0,
+      "rms_energy": 0.035974,
       "is_silent": false,
-      "predicted_class": "nonmusic",
-      "confidence": 0.8932,
+      "predicted_class": "percussion",
+      "confidence": 0.7169,
       "top3_classes": [
+        "percussion",
         "nonmusic",
-        "strings",
-        "woodwind"
+        "guzheng"
       ],
       "ground_truth_classes": [
         "nonmusic"
       ],
       "is_music_cue": false,
-      "is_hit": true,
+      "is_hit": false,
       "is_top3_hit": true
     },
     {
       "window_index": 26,
       "start_sec": 26.0,
-      "end_sec": 29.0,
-      "mid_sec": 27.5,
-      "rms_energy": 0.039917,
+      "end_sec": 30.0,
+      "mid_sec": 28.0,
+      "rms_energy": 0.04349,
       "is_silent": false,
-      "predicted_class": "strings",
-      "confidence": 0.4437,
+      "predicted_class": "percussion",
+      "confidence": 0.5651,
       "top3_classes": [
-        "strings",
-        "woodwind",
-        "nonmusic"
+        "percussion",
+        "nonmusic",
+        "guzheng"
       ],
       "ground_truth_classes": [
-        "nonmusic"
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings_western",
+        "suona"
       ],
-      "is_music_cue": false,
-      "is_hit": false,
+      "is_music_cue": true,
+      "is_hit": true,
       "is_top3_hit": true
     },
     {
       "window_index": 27,
       "start_sec": 27.0,
-      "end_sec": 30.0,
-      "mid_sec": 28.5,
-      "rms_energy": 0.045585,
+      "end_sec": 31.0,
+      "mid_sec": 29.0,
+      "rms_energy": 0.044627,
       "is_silent": false,
-      "predicted_class": "woodwind",
-      "confidence": 0.8103,
+      "predicted_class": "percussion",
+      "confidence": 0.3614,
       "top3_classes": [
-        "woodwind",
-        "strings",
+        "percussion",
+        "brass",
+        "guzheng"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings_western",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 28,
+      "start_sec": 28.0,
+      "end_sec": 32.0,
+      "mid_sec": 30.0,
+      "rms_energy": 0.04507,
+      "is_silent": false,
+      "predicted_class": "percussion",
+      "confidence": 0.7085,
+      "top3_classes": [
+        "percussion",
+        "nonmusic",
+        "brass"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings_western",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 29,
+      "start_sec": 29.0,
+      "end_sec": 33.0,
+      "mid_sec": 31.0,
+      "rms_energy": 0.044611,
+      "is_silent": false,
+      "predicted_class": "percussion",
+      "confidence": 0.6918,
+      "top3_classes": [
+        "percussion",
+        "nonmusic",
+        "brass"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings_western",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 30,
+      "start_sec": 30.0,
+      "end_sec": 34.0,
+      "mid_sec": 32.0,
+      "rms_energy": 0.040378,
+      "is_silent": false,
+      "predicted_class": "percussion",
+      "confidence": 0.8097,
+      "top3_classes": [
+        "percussion",
+        "nonmusic",
+        "brass"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings_western",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 31,
+      "start_sec": 31.0,
+      "end_sec": 35.0,
+      "mid_sec": 33.0,
+      "rms_energy": 0.04011,
+      "is_silent": false,
+      "predicted_class": "percussion",
+      "confidence": 0.6727,
+      "top3_classes": [
+        "percussion",
+        "nonmusic",
+        "brass"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings_western",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 32,
+      "start_sec": 32.0,
+      "end_sec": 36.0,
+      "mid_sec": 34.0,
+      "rms_energy": 0.044732,
+      "is_silent": false,
+      "predicted_class": "percussion",
+      "confidence": 0.6781,
+      "top3_classes": [
+        "percussion",
+        "nonmusic",
+        "brass"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings_western",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 33,
+      "start_sec": 33.0,
+      "end_sec": 37.0,
+      "mid_sec": 35.0,
+      "rms_energy": 0.044472,
+      "is_silent": false,
+      "predicted_class": "percussion",
+      "confidence": 0.5828,
+      "top3_classes": [
+        "percussion",
+        "brass",
         "nonmusic"
       ],
       "ground_truth_classes": [
@@ -1554,215 +1666,59 @@
         "erhu",
         "percussion",
         "pipa",
-        "strings",
+        "strings_western",
         "suona"
       ],
       "is_music_cue": true,
-      "is_hit": false,
-      "is_top3_hit": true
-    },
-    {
-      "window_index": 28,
-      "start_sec": 28.0,
-      "end_sec": 31.0,
-      "mid_sec": 29.5,
-      "rms_energy": 0.046755,
-      "is_silent": false,
-      "predicted_class": "nonmusic",
-      "confidence": 0.4029,
-      "top3_classes": [
-        "nonmusic",
-        "percussion",
-        "woodwind"
-      ],
-      "ground_truth_classes": [
-        "dizi",
-        "erhu",
-        "percussion",
-        "pipa",
-        "strings",
-        "suona"
-      ],
-      "is_music_cue": true,
-      "is_hit": false,
-      "is_top3_hit": true
-    },
-    {
-      "window_index": 29,
-      "start_sec": 29.0,
-      "end_sec": 32.0,
-      "mid_sec": 30.5,
-      "rms_energy": 0.045037,
-      "is_silent": false,
-      "predicted_class": "nonmusic",
-      "confidence": 0.9419,
-      "top3_classes": [
-        "nonmusic",
-        "brass",
-        "woodwind"
-      ],
-      "ground_truth_classes": [
-        "dizi",
-        "erhu",
-        "percussion",
-        "pipa",
-        "strings",
-        "suona"
-      ],
-      "is_music_cue": true,
-      "is_hit": false,
-      "is_top3_hit": false
-    },
-    {
-      "window_index": 30,
-      "start_sec": 30.0,
-      "end_sec": 33.0,
-      "mid_sec": 31.5,
-      "rms_energy": 0.041535,
-      "is_silent": false,
-      "predicted_class": "nonmusic",
-      "confidence": 0.9074,
-      "top3_classes": [
-        "nonmusic",
-        "woodwind",
-        "brass"
-      ],
-      "ground_truth_classes": [
-        "dizi",
-        "erhu",
-        "percussion",
-        "pipa",
-        "strings",
-        "suona"
-      ],
-      "is_music_cue": true,
-      "is_hit": false,
-      "is_top3_hit": false
-    },
-    {
-      "window_index": 31,
-      "start_sec": 31.0,
-      "end_sec": 34.0,
-      "mid_sec": 32.5,
-      "rms_energy": 0.039954,
-      "is_silent": false,
-      "predicted_class": "nonmusic",
-      "confidence": 0.9956,
-      "top3_classes": [
-        "nonmusic",
-        "strings",
-        "brass"
-      ],
-      "ground_truth_classes": [
-        "dizi",
-        "erhu",
-        "percussion",
-        "pipa",
-        "strings",
-        "suona"
-      ],
-      "is_music_cue": true,
-      "is_hit": false,
-      "is_top3_hit": true
-    },
-    {
-      "window_index": 32,
-      "start_sec": 32.0,
-      "end_sec": 35.0,
-      "mid_sec": 33.5,
-      "rms_energy": 0.040283,
-      "is_silent": false,
-      "predicted_class": "nonmusic",
-      "confidence": 0.9847,
-      "top3_classes": [
-        "nonmusic",
-        "strings",
-        "brass"
-      ],
-      "ground_truth_classes": [
-        "dizi",
-        "erhu",
-        "percussion",
-        "pipa",
-        "strings",
-        "suona"
-      ],
-      "is_music_cue": true,
-      "is_hit": false,
-      "is_top3_hit": true
-    },
-    {
-      "window_index": 33,
-      "start_sec": 33.0,
-      "end_sec": 36.0,
-      "mid_sec": 34.5,
-      "rms_energy": 0.045196,
-      "is_silent": false,
-      "predicted_class": "nonmusic",
-      "confidence": 0.9834,
-      "top3_classes": [
-        "nonmusic",
-        "strings",
-        "brass"
-      ],
-      "ground_truth_classes": [
-        "dizi",
-        "erhu",
-        "percussion",
-        "pipa",
-        "strings",
-        "suona"
-      ],
-      "is_music_cue": true,
-      "is_hit": false,
+      "is_hit": true,
       "is_top3_hit": true
     },
     {
       "window_index": 34,
       "start_sec": 34.0,
-      "end_sec": 37.0,
-      "mid_sec": 35.5,
-      "rms_energy": 0.04678,
+      "end_sec": 38.0,
+      "mid_sec": 36.0,
+      "rms_energy": 0.040513,
       "is_silent": false,
-      "predicted_class": "nonmusic",
-      "confidence": 0.8477,
+      "predicted_class": "percussion",
+      "confidence": 0.6037,
       "top3_classes": [
+        "percussion",
         "nonmusic",
-        "brass",
-        "woodwind"
+        "brass"
       ],
       "ground_truth_classes": [
         "dizi",
         "erhu",
         "percussion",
         "pipa",
-        "strings",
+        "strings_western",
         "suona"
       ],
       "is_music_cue": true,
-      "is_hit": false,
-      "is_top3_hit": false
+      "is_hit": true,
+      "is_top3_hit": true
     },
     {
       "window_index": 35,
       "start_sec": 35.0,
-      "end_sec": 38.0,
-      "mid_sec": 36.5,
-      "rms_energy": 0.040493,
+      "end_sec": 39.0,
+      "mid_sec": 37.0,
+      "rms_energy": 0.035068,
       "is_silent": false,
       "predicted_class": "nonmusic",
-      "confidence": 0.6045,
+      "confidence": 0.3182,
       "top3_classes": [
         "nonmusic",
-        "brass",
-        "percussion"
+        "percussion",
+        "brass"
       ],
       "ground_truth_classes": [
         "dizi",
         "erhu",
         "percussion",
         "pipa",
-        "strings",
+        "strings_western",
         "suona"
       ],
       "is_music_cue": true,
@@ -1772,15 +1728,15 @@
     {
       "window_index": 36,
       "start_sec": 36.0,
-      "end_sec": 39.0,
-      "mid_sec": 37.5,
-      "rms_energy": 0.024382,
+      "end_sec": 40.0,
+      "mid_sec": 38.0,
+      "rms_energy": 0.033215,
       "is_silent": false,
-      "predicted_class": "percussion",
-      "confidence": 0.7247,
+      "predicted_class": "nonmusic",
+      "confidence": 0.4815,
       "top3_classes": [
-        "percussion",
         "nonmusic",
+        "percussion",
         "brass"
       ],
       "ground_truth_classes": [
@@ -1788,33 +1744,33 @@
         "erhu",
         "percussion",
         "pipa",
-        "strings",
+        "strings_western",
         "suona"
       ],
       "is_music_cue": true,
-      "is_hit": true,
+      "is_hit": false,
       "is_top3_hit": true
     },
     {
       "window_index": 37,
       "start_sec": 37.0,
-      "end_sec": 40.0,
-      "mid_sec": 38.5,
-      "rms_energy": 0.029608,
+      "end_sec": 41.0,
+      "mid_sec": 39.0,
+      "rms_energy": 0.035729,
       "is_silent": false,
       "predicted_class": "nonmusic",
-      "confidence": 0.9997,
+      "confidence": 0.3669,
       "top3_classes": [
         "nonmusic",
-        "brass",
-        "percussion"
+        "percussion",
+        "brass"
       ],
       "ground_truth_classes": [
         "dizi",
         "erhu",
         "percussion",
         "pipa",
-        "strings",
+        "strings_western",
         "suona"
       ],
       "is_music_cue": true,
@@ -1824,15 +1780,15 @@
     {
       "window_index": 38,
       "start_sec": 38.0,
-      "end_sec": 41.0,
-      "mid_sec": 39.5,
-      "rms_energy": 0.041255,
+      "end_sec": 42.0,
+      "mid_sec": 40.0,
+      "rms_energy": 0.043267,
       "is_silent": false,
       "predicted_class": "nonmusic",
-      "confidence": 0.9998,
+      "confidence": 0.319,
       "top3_classes": [
         "nonmusic",
-        "pipa",
+        "percussion",
         "brass"
       ],
       "ground_truth_classes": [
@@ -1840,7 +1796,7 @@
         "erhu",
         "percussion",
         "pipa",
-        "strings",
+        "strings_western",
         "suona"
       ],
       "is_music_cue": true,
@@ -1850,67 +1806,67 @@
     {
       "window_index": 39,
       "start_sec": 39.0,
-      "end_sec": 42.0,
-      "mid_sec": 40.5,
-      "rms_energy": 0.049961,
+      "end_sec": 43.0,
+      "mid_sec": 41.0,
+      "rms_energy": 0.050659,
       "is_silent": false,
-      "predicted_class": "nonmusic",
-      "confidence": 0.9988,
+      "predicted_class": "percussion",
+      "confidence": 0.4052,
       "top3_classes": [
+        "percussion",
         "nonmusic",
-        "woodwind",
-        "strings"
+        "brass"
       ],
       "ground_truth_classes": [
         "dizi",
         "erhu",
         "percussion",
         "pipa",
-        "strings",
+        "strings_western",
         "suona"
       ],
       "is_music_cue": true,
-      "is_hit": false,
+      "is_hit": true,
       "is_top3_hit": true
     },
     {
       "window_index": 40,
       "start_sec": 40.0,
-      "end_sec": 43.0,
-      "mid_sec": 41.5,
-      "rms_energy": 0.05045,
+      "end_sec": 44.0,
+      "mid_sec": 42.0,
+      "rms_energy": 0.050972,
       "is_silent": false,
-      "predicted_class": "woodwind",
-      "confidence": 0.4043,
+      "predicted_class": "percussion",
+      "confidence": 0.2407,
       "top3_classes": [
-        "woodwind",
+        "percussion",
         "nonmusic",
-        "suona"
+        "brass"
       ],
       "ground_truth_classes": [
         "dizi",
         "erhu",
         "percussion",
         "pipa",
-        "strings",
+        "strings_western",
         "suona"
       ],
       "is_music_cue": true,
-      "is_hit": false,
+      "is_hit": true,
       "is_top3_hit": true
     },
     {
       "window_index": 41,
       "start_sec": 41.0,
-      "end_sec": 44.0,
-      "mid_sec": 42.5,
-      "rms_energy": 0.051369,
+      "end_sec": 45.0,
+      "mid_sec": 43.0,
+      "rms_energy": 0.051569,
       "is_silent": false,
-      "predicted_class": "brass",
-      "confidence": 0.3072,
+      "predicted_class": "percussion",
+      "confidence": 0.2449,
       "top3_classes": [
-        "brass",
-        "suona",
+        "percussion",
+        "nonmusic",
         "woodwind"
       ],
       "ground_truth_classes": [
@@ -1918,50 +1874,50 @@
         "erhu",
         "percussion",
         "pipa",
-        "strings",
+        "strings_western",
         "suona"
       ],
       "is_music_cue": true,
-      "is_hit": false,
+      "is_hit": true,
       "is_top3_hit": true
     },
     {
       "window_index": 42,
       "start_sec": 42.0,
-      "end_sec": 45.0,
-      "mid_sec": 43.5,
-      "rms_energy": 0.052457,
+      "end_sec": 46.0,
+      "mid_sec": 44.0,
+      "rms_energy": 0.050199,
       "is_silent": false,
-      "predicted_class": "woodwind",
-      "confidence": 0.5895,
+      "predicted_class": "percussion",
+      "confidence": 0.5413,
       "top3_classes": [
-        "woodwind",
-        "brass",
-        "suona"
+        "percussion",
+        "nonmusic",
+        "brass"
       ],
       "ground_truth_classes": [
         "dizi",
         "erhu",
         "percussion",
         "pipa",
-        "strings",
+        "strings_western",
         "suona"
       ],
       "is_music_cue": true,
-      "is_hit": false,
+      "is_hit": true,
       "is_top3_hit": true
     },
     {
       "window_index": 43,
       "start_sec": 43.0,
-      "end_sec": 46.0,
-      "mid_sec": 44.5,
-      "rms_energy": 0.049338,
+      "end_sec": 47.0,
+      "mid_sec": 45.0,
+      "rms_energy": 0.04866,
       "is_silent": false,
-      "predicted_class": "woodwind",
-      "confidence": 0.479,
+      "predicted_class": "percussion",
+      "confidence": 0.4825,
       "top3_classes": [
-        "woodwind",
+        "percussion",
         "nonmusic",
         "brass"
       ],
@@ -1970,76 +1926,50 @@
         "erhu",
         "percussion",
         "pipa",
-        "strings",
+        "strings_western",
         "suona"
       ],
       "is_music_cue": true,
-      "is_hit": false,
-      "is_top3_hit": false
+      "is_hit": true,
+      "is_top3_hit": true
     },
     {
       "window_index": 44,
       "start_sec": 44.0,
-      "end_sec": 47.0,
-      "mid_sec": 45.5,
-      "rms_energy": 0.047308,
+      "end_sec": 48.0,
+      "mid_sec": 46.0,
+      "rms_energy": 0.04668,
       "is_silent": false,
-      "predicted_class": "nonmusic",
-      "confidence": 0.8067,
+      "predicted_class": "percussion",
+      "confidence": 0.546,
       "top3_classes": [
+        "percussion",
         "nonmusic",
-        "strings",
-        "woodwind"
+        "brass"
       ],
       "ground_truth_classes": [
         "dizi",
         "erhu",
         "percussion",
         "pipa",
-        "strings",
+        "strings_western",
         "suona"
       ],
       "is_music_cue": true,
-      "is_hit": false,
+      "is_hit": true,
       "is_top3_hit": true
     },
     {
       "window_index": 45,
       "start_sec": 45.0,
-      "end_sec": 48.0,
-      "mid_sec": 46.5,
-      "rms_energy": 0.044702,
-      "is_silent": false,
-      "predicted_class": "nonmusic",
-      "confidence": 0.9824,
-      "top3_classes": [
-        "nonmusic",
-        "strings",
-        "woodwind"
-      ],
-      "ground_truth_classes": [
-        "dizi",
-        "erhu",
-        "percussion",
-        "pipa",
-        "strings",
-        "suona"
-      ],
-      "is_music_cue": true,
-      "is_hit": false,
-      "is_top3_hit": true
-    },
-    {
-      "window_index": 46,
-      "start_sec": 46.0,
       "end_sec": 49.0,
-      "mid_sec": 47.5,
-      "rms_energy": 0.045905,
+      "mid_sec": 47.0,
+      "rms_energy": 0.045129,
       "is_silent": false,
-      "predicted_class": "strings",
-      "confidence": 0.7396,
+      "predicted_class": "percussion",
+      "confidence": 0.604,
       "top3_classes": [
-        "strings",
+        "percussion",
         "nonmusic",
         "brass"
       ],
@@ -2048,7 +1978,33 @@
         "erhu",
         "percussion",
         "pipa",
-        "strings",
+        "strings_western",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 46,
+      "start_sec": 46.0,
+      "end_sec": 50.0,
+      "mid_sec": 48.0,
+      "rms_energy": 0.047136,
+      "is_silent": false,
+      "predicted_class": "percussion",
+      "confidence": 0.3631,
+      "top3_classes": [
+        "percussion",
+        "nonmusic",
+        "brass"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings_western",
         "suona"
       ],
       "is_music_cue": true,
@@ -2058,23 +2014,23 @@
     {
       "window_index": 47,
       "start_sec": 47.0,
-      "end_sec": 50.0,
-      "mid_sec": 48.5,
-      "rms_energy": 0.047324,
+      "end_sec": 51.0,
+      "mid_sec": 49.0,
+      "rms_energy": 0.046926,
       "is_silent": false,
-      "predicted_class": "strings",
-      "confidence": 0.5447,
+      "predicted_class": "percussion",
+      "confidence": 0.2492,
       "top3_classes": [
-        "strings",
-        "suona",
-        "sheng"
+        "percussion",
+        "nonmusic",
+        "brass"
       ],
       "ground_truth_classes": [
         "dizi",
         "erhu",
         "percussion",
         "pipa",
-        "strings",
+        "strings_western",
         "suona"
       ],
       "is_music_cue": true,
@@ -2084,23 +2040,23 @@
     {
       "window_index": 48,
       "start_sec": 48.0,
-      "end_sec": 51.0,
-      "mid_sec": 49.5,
-      "rms_energy": 0.047632,
+      "end_sec": 52.0,
+      "mid_sec": 50.0,
+      "rms_energy": 0.041914,
       "is_silent": false,
-      "predicted_class": "suona",
-      "confidence": 0.7268,
+      "predicted_class": "percussion",
+      "confidence": 0.2355,
       "top3_classes": [
-        "suona",
-        "strings",
-        "brass"
+        "percussion",
+        "nonmusic",
+        "guzheng"
       ],
       "ground_truth_classes": [
         "dizi",
         "erhu",
         "percussion",
         "pipa",
-        "strings",
+        "strings_western",
         "suona"
       ],
       "is_music_cue": true,
@@ -2110,23 +2066,23 @@
     {
       "window_index": 49,
       "start_sec": 49.0,
-      "end_sec": 52.0,
-      "mid_sec": 50.5,
-      "rms_energy": 0.040314,
+      "end_sec": 53.0,
+      "mid_sec": 51.0,
+      "rms_energy": 0.036225,
       "is_silent": false,
-      "predicted_class": "strings",
-      "confidence": 0.9405,
+      "predicted_class": "percussion",
+      "confidence": 0.2511,
       "top3_classes": [
-        "strings",
-        "suona",
-        "brass"
+        "percussion",
+        "nonmusic",
+        "guzheng"
       ],
       "ground_truth_classes": [
         "dizi",
         "erhu",
         "percussion",
         "pipa",
-        "strings",
+        "strings_western",
         "suona"
       ],
       "is_music_cue": true,

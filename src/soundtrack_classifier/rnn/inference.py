@@ -8,13 +8,21 @@ import yaml
 
 
 def load_config(config_path: str = "config/config.yaml") -> dict:
-    """Loads configuration from yaml file."""
-    if os.path.exists(config_path):
-        try:
-            with open(config_path, "r", encoding="utf-8") as f:
-                return yaml.safe_load(f) or {}
-        except Exception:
-            pass
+    """Loads configuration from yaml file with dynamic path resolution."""
+    candidate_paths = [
+        config_path,
+        os.path.join(os.path.dirname(__file__), "..", "..", "..", config_path),
+        os.path.join(os.getcwd(), config_path)
+    ]
+    for p in candidate_paths:
+        if os.path.exists(p):
+            try:
+                with open(p, "r", encoding="utf-8") as f:
+                    cfg = yaml.safe_load(f)
+                    if cfg:
+                        return cfg
+            except Exception:
+                pass
     return {}
 
 
@@ -37,7 +45,7 @@ def run_streaming_rnn_inference(
     """
     Executes streaming inference across continuous audio using fixed buffers
     with batched GPU inference and Hanning window averaging.
-    All parameters are dynamically resolved from config.yaml with override support.
+    All parameters and labels are dynamically resolved from config.yaml with override support.
     """
     if config is None:
         config = load_config()
@@ -58,11 +66,27 @@ def run_streaming_rnn_inference(
     include_nonmusic = include_nonmusic if include_nonmusic is not None else bool(crnn_inf.get("include_nonmusic", False))
 
     if idx_to_class is None:
-        train_labels = config.get("train_labels", [
-            "sheng", "dizi", "erhu", "pipa", "suona", "guzheng",
-            "yangqin", "percussion", "strings", "woodwind", "brass", "nonmusic"
-        ])
+        # Dynamically retrieve class labels from model attribute or config.yaml
+        train_labels = getattr(model, "classes", None)
+        if train_labels is None:
+            train_labels = config.get("train_labels") or config.get("crnn", {}).get("labels")
+
+        if not train_labels:
+            raise ValueError(
+                "No class labels found! Please define 'train_labels' in config/config.yaml "
+                "or pass an explicit 'idx_to_class' dictionary to run_streaming_rnn_inference."
+            )
         idx_to_class = {i: c for i, c in enumerate(train_labels)}
+
+    # Dynamically resolve non-music label from config or label list
+    nonmusic_label = crnn_inf.get("nonmusic_label")
+    if not nonmusic_label:
+        for lbl in idx_to_class.values():
+            if "nonmusic" in str(lbl).lower():
+                nonmusic_label = lbl
+                break
+    if not nonmusic_label:
+        nonmusic_label = "nonmusic"
 
     model.eval()
     model.to(device)
@@ -167,7 +191,8 @@ def run_streaming_rnn_inference(
                 event_duration = curr_end - curr_start
                 if curr_label != -1 and event_duration >= min_event_sec:
                     class_name = idx_to_class.get(curr_label, "unknown")
-                    if include_nonmusic or class_name != "nonmusic":
+                    is_nonmusic = (str(class_name).lower() == str(nonmusic_label).lower())
+                    if include_nonmusic or not is_nonmusic:
                         events.append({
                             "start_sec": round(float(curr_start), 2),
                             "end_sec": round(float(curr_end), 2),
@@ -185,7 +210,8 @@ def run_streaming_rnn_inference(
         event_duration = curr_end - curr_start
         if curr_label != -1 and event_duration >= min_event_sec:
             class_name = idx_to_class.get(curr_label, "unknown")
-            if include_nonmusic or class_name != "nonmusic":
+            is_nonmusic = (str(class_name).lower() == str(nonmusic_label).lower())
+            if include_nonmusic or not is_nonmusic:
                 events.append({
                     "start_sec": round(float(curr_start), 2),
                     "end_sec": round(float(curr_end), 2),

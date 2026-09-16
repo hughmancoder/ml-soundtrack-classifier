@@ -9,8 +9,9 @@ def run_sliding_window_inference(
     model: torch.nn.Module, 
     idx_to_class: dict,
     sr: int = 44100, 
-    window_sec: float = 3.0, 
+    window_sec: float = 4.0, 
     stride_sec: float = 1.0, 
+    fmin: float = 65.4,
     device: str = 'cpu',
     rms_threshold: float = 0.005
 ) -> List[Tuple[float, float, str]]:
@@ -31,7 +32,7 @@ def run_sliding_window_inference(
         padding = window_samples - len(audio)
         audio = np.pad(audio, (0, padding), 'constant')
     
-    cqt = CQT1992v2(sr=sr, fmin=32.7, n_bins=84, bins_per_octave=12).to(device)
+    cqt = CQT1992v2(sr=sr, fmin=fmin, n_bins=84, bins_per_octave=12).to(device)
     
     raw_predictions = []
     timestamps_sec = []

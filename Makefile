@@ -1,4 +1,4 @@
-.PHONY: train-rnn resume-rnn rnn-pipeline precompute-features gui package-gui summarize-data debug debug-samples download-archive slice-chmusic slice-film slice-nonmusic splice-movie clean help test-rnn test_rnn delete-silent plot-curves evaluate-models
+.PHONY: train-rnn resume-rnn rnn-pipeline precompute-features gui package-gui summarize-data debug debug-samples download-archive slice-chmusic slice-film slice-nonmusic splice-movie clean clean-data clean-cache help test-rnn test_rnn delete-silent plot-curves evaluate-models train-cnn resume-cnn test-cnn test_cnn cnn-pipeline train-ast ast-pipeline test-ast
 
 PYTHON ?= $(shell if [ -f "venv/bin/python" ]; then echo "venv/bin/python"; else echo "python3"; fi)
 
@@ -12,6 +12,12 @@ help:
 	@echo "  make rnn-pipeline input=...  Run streaming 10s Hanning-overlap inference on an audio file"
 	@echo "  make precompute-features     Pre-compute and cache 2-channel CQT+HPSS tensors for 5-10x faster training"
 	@echo ""
+	@echo "Usage (CNN Baseline - ResNet-50 Transfer Learning):"
+	@echo "  make train-cnn               Train ResNet-50 CNN with dynamic random crops"
+	@echo "  make resume-cnn              Resume CNN training from models/resnet50_cnn.pt"
+	@echo "  make test-cnn                Evaluate CNN against film cue sheet annotations"
+	@echo "  make cnn-pipeline input=...  Run sliding-window CNN inference on an audio file"
+	@echo ""
 	@echo "Data & Debug Utilities:"
 	@echo "  make debug                   Generate clean vs degraded samples & CQT plots in data/debug/"
 	@echo "  make summarize-data          Summarize training data distribution"
@@ -19,7 +25,9 @@ help:
 	@echo "  make slice-chmusic           Partition and slice ChMusic raw data into training set"
 	@echo "  make slice-film              Slice annotated film clips into class folders in data/train/"
 	@echo "  make gui                     Launch the desktop GUI app for drag-and-drop inference"
-	@echo "  make clean                   Clean up Python cache files"
+	@echo "  make clean                   Clean all cached, precomputed features and Python bytecode"
+	@echo "  make clean-data              Clean precomputed feature tensors, AST data, stems, and debug files"
+	@echo "  make clean-cache             Clean __pycache__, .pytest_cache, and test artifacts"
 	@echo ""
 
 summarize-data:
@@ -106,10 +114,23 @@ evaluate-models:
 	@echo "Evaluating multiple model checkpoints..."
 	PYTHONPATH=src $(PYTHON) scripts/evaluate_models.py
 
-clean:
-	@echo "Cleaning up __pycache__ directories..."
+clean-cache:
+	@echo "Cleaning up Python cache and test artifacts..."
 	find . -type d -name "__pycache__" -exec rm -rf {} +
-	@echo "Done."
+	find . -type f -name "*.py[cod]" -delete
+	rm -rf .pytest_cache .coverage htmlcov build dist *.egg-info
+	@echo "Python cache cleaned."
+
+clean-data:
+	@echo "Cleaning up precomputed feature caches and intermediate data..."
+	rm -rf data/features_cqt_hpss
+	rm -rf data/ast
+	rm -rf data/stems
+	rm -rf data/debug
+	@echo "Precomputed feature caches cleaned."
+
+clean: clean-cache clean-data
+	@echo "All cached and precomputed data successfully cleaned."
 
 delete-silent:
 	@echo "Deleting silent clips..."
@@ -117,34 +138,58 @@ delete-silent:
 
 
 # ==============================================================================
-# Legacy CNN Baseline Commands (Commented Out)
+# CNN Baseline Commands
 # ==============================================================================
-# cnn_model ?= models/resnet18_cnn_80_percent_degraded.pt
-# cnn_eval_output ?= reports/inference_eval_come_drink_with_me.json
-# 
-# train-cnn:
-# 	@echo "Starting CNN training pipeline..."
-# 	PYTHONPATH=src $(PYTHON) src/train_cnn.py
-# 
-# resume-cnn:
-# 	@echo "Resuming CNN training from models/resnet18_cnn.pt..."
-# 	PYTHONPATH=src $(PYTHON) src/train_cnn.py --resume models/resnet18_cnn.pt
-# 
-# test-cnn:
-# 	@echo "Evaluating CNN model against cue sheet annotations..."
-# 	PYTHONPATH=src $(PYTHON) src/soundtrack_classifier/cnn/test_cnn.py \
-# 		--audio "$(audio)" \
-# 		--model "$(cnn_model)" \
-# 		--cuesheet "$(cuesheet)" \
-# 		--mapping "$(mapping)" \
-# 		--output "$(cnn_eval_output)"
-# 
-# test_cnn: test-cnn
-# 
-# cnn-pipeline:
-# 	@if [ -z "$(input)" ]; then \
-# 		echo "Error: input is not set. Usage: make cnn-pipeline input=\"path/to/audio.wav\""; \
-# 		exit 1; \
-# 	fi
-# 	@echo "Starting sliding window inference on $(input)..."
-# 	PYTHONPATH=src $(PYTHON) scripts/cnn_pipeline.py "$(input)"
+cnn_model ?= models/resnet50_cnn.pt
+cnn_eval_output ?= reports/cnn_inference_eval_come_drink_with_me.json
+
+train-cnn:
+	@echo "Starting CNN training pipeline..."
+	PYTHONPATH=src $(PYTHON) src/train_cnn.py
+
+resume-cnn:
+	@echo "Resuming CNN training from models/resnet50_cnn.pt..."
+	PYTHONPATH=src $(PYTHON) src/train_cnn.py --resume models/resnet50_cnn.pt
+
+test-cnn:
+	@echo "Evaluating CNN model against cue sheet annotations..."
+	PYTHONPATH=src $(PYTHON) src/soundtrack_classifier/cnn/test_cnn.py \
+		--audio "$(audio)" \
+		--model "$(cnn_model)" \
+		--cuesheet "$(cuesheet)" \
+		--mapping "$(mapping)" \
+		--output "$(cnn_eval_output)"
+
+test_cnn: test-cnn
+
+cnn-pipeline:
+	@if [ -z "$(input)" ]; then \
+		echo "Error: input is not set. Usage: make cnn-pipeline input=\"path/to/audio.wav\""; \
+		exit 1; \
+	fi
+	@echo "Starting sliding window inference on $(input)..."
+	PYTHONPATH=src $(PYTHON) scripts/cnn_pipeline.py "$(input)"
+
+# ==============================================================================
+# AST & Foundation Model Pipeline Commands
+# ==============================================================================
+ast_model ?= models/ast_probing_head.pt
+ast_eval_output ?= reports/ast_inference_eval_come_drink_with_me.json
+
+train-ast:
+	@echo "Starting AST Probing Head training pipeline..."
+	PYTHONPATH=src $(PYTHON) src/train_ast.py
+
+ast-pipeline:
+	@if [ -z "$(input)" ]; then \
+		echo "Starting end-to-end AST scoring on default film Come Drink With Me..."; \
+		PYTHONPATH=src $(PYTHON) scripts/cli/ast_pipeline.py --phase score; \
+	else \
+		echo "Starting AST scoring pipeline on $(input)..."; \
+		PYTHONPATH=src $(PYTHON) scripts/cli/ast_pipeline.py "$(input)" --phase score; \
+	fi
+
+test-ast:
+	@echo "Running AST test suite..."
+	PYTHONPATH=src venv/bin/pytest tests/test_ast.py -v
+

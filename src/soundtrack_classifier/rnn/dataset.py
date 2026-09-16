@@ -74,12 +74,11 @@ class ArchivalSoundtrackRNNDataset(Dataset):
         # Defaults to True in config.yaml to save CQT computation time.
         # If False, audio is loaded and transformed dynamically on the fly.
         if precompute_features is None:
-            cfg_precompute = crnn_train.get("precompute_features")
-            if cfg_precompute is not None:
-                self.precompute_features = bool(cfg_precompute)
+            if data_dir and data_dir != "data/train" and not features_dir:
+                self.precompute_features = False
             else:
-                # Default to False only if custom data_dir passed without config (e.g. unit tests)
-                self.precompute_features = False if (data_dir and data_dir != "data/train" and not features_dir) else True
+                cfg_precompute = crnn_train.get("precompute_features")
+                self.precompute_features = bool(cfg_precompute) if cfg_precompute is not None else True
         else:
             self.precompute_features = bool(precompute_features)
 

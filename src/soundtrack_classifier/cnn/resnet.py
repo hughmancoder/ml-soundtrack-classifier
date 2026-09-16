@@ -1,5 +1,7 @@
 import torch
 import torch.nn as nn
+from torchvision.models import resnet50, ResNet50_Weights
+
 
 class BasicBlock(nn.Module):
     expansion = 1
@@ -26,6 +28,7 @@ class BasicBlock(nn.Module):
         out += identity
         out = self.relu(out)
         return out
+
 
 class ResNetBackbone(nn.Module):
     def __init__(self, block: type[BasicBlock], layers: list[int], num_classes: int = 12, in_channels: int = 1):
@@ -72,10 +75,11 @@ class ResNetBackbone(nn.Module):
         x = self.fc(x)
         return x
 
+
 class ResNet18Classifier(nn.Module):
     """
-    CNN Classifier: Adapts a ResNet-18 to accept 1-channel CQT spectrograms 
-    and output a single probability distribution over the target classes.
+    Legacy CNN Classifier: Adapts a lightweight ResNet-18 to accept 1-channel CQT spectrograms.
+    Preserved for backward compatibility with existing checkpoints.
     """
     def __init__(self, num_classes: int = 12, pretrained: bool = False):
         super().__init__()
@@ -83,10 +87,41 @@ class ResNet18Classifier(nn.Module):
         self.backbone = ResNetBackbone(BasicBlock, [2, 2, 2, 2], num_classes=num_classes, in_channels=1)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.backbone(x)
+
+
+class ResNet50Classifier(nn.Module):
+    """
+    Transfer Learning CNN Classifier: Adapts a pre-trained ResNet-50 backbone to accept
+    CQT spectrograms and classify multi-class acoustic instrument events.
+    """
+    def __init__(self, num_classes: int = 12, pretrained: bool = True):
+        super().__init__()
+        self.num_classes = num_classes
+        
+        if pretrained:
+            weights = ResNet50_Weights.DEFAULT
+        else:
+            weights = None
+            
+        self.backbone = resnet50(weights=weights)
+        
+        # Replace the final classification head
+        num_ftrs = self.backbone.fc.in_features
+        self.backbone.fc = nn.Linear(num_ftrs, num_classes)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Args:
-            x: Tensor of shape [batch_size, 1, freq_bins, time_steps]
+            x: Tensor of shape [batch_size, 1, freq_bins, time_steps] or [batch_size, 3, freq_bins, time_steps]
         Returns:
             Logits of shape [batch_size, num_classes]
         """
+        # ResNet-50 expects 3-channel input (RGB). 
+        # We duplicate the 1-channel CQT spectrogram across 3 channels
+        # to effectively utilize pre-trained ImageNet feature weights.
+        if x.shape[1] == 1:
+            x = x.repeat(1, 3, 1, 1)
+            
         return self.backbone(x)
+

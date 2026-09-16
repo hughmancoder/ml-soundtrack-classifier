@@ -17,28 +17,28 @@ train_labels:
 cnn:
   audio:
     sample_rate: 44100
-    duration_sec: 3.0
+    duration_sec: 4.0
     # CQT specific parameters
     cqt:
-      fmin: 65
+      fmin: 65.4
       fmax: null
       n_bins: 84
       bins_per_octave: 12
 
   training:
-    batch_size: 32
+    batch_size: 16
     epochs: 50
     learning_rate: 0.0001
     num_workers: 4
-    early_stopping_patience: 8
+    early_stopping_patience: 10
 
   augmentation:
-    spec_augment: false
+    spec_augment: true
     minority_only: true
 
   degradation:
     enabled: true
-    probability: 80  # % chance to degrade an audio clip during training
+    probability: 0.4  # 40% chance to degrade an audio clip during training
     sample_rate: 44100
 
   paths:
@@ -103,3 +103,80 @@ crnn:
 paths:
   data_dir: "data/train"
   models_dir: "models"
+
+# ==============================================================================
+# Audio Spectrogram Transformer (AST) / Foundation Model Probing Pipeline
+# ==============================================================================
+ast:
+  standardization:
+    sr_mert: 24000
+    sr_clap: 48000
+    pre_roll_sec: 0.05
+    post_roll_sec: 2.0
+    silence_top_db: 40.0
+
+  segment_augment:
+    window_sec: 4.0
+    hop_sec: 2.0
+    mixup_prob: 0.5
+    mixup_alpha: 0.5
+    bandpass_low_hz: 80.0
+    bandpass_high_hz: 7500.0
+    bandpass_order: 2
+    hum_frequency_hz: 50.0
+    hum_level: 0.005
+
+  feature_extraction:
+    mert_model_id: "m-a-p/MERT-v1-95M"
+    clap_model_id: "laion/clap-htsat-unfused"
+    mert_dim: 768
+    clap_dim: 512
+    fused_dim: 1280
+    device: "mps"
+    fp16: true
+    batch_size: 16
+
+  probing_head:
+    in_dim: 1280
+    hidden_dims:
+      - 512
+      - 256
+    num_classes: 12
+    dropouts:
+      - 0.4
+      - 0.3
+    lr: 0.001
+    weight_decay: 0.01
+    epochs: 40
+    batch_size: 64
+    early_stopping_patience: 10
+    n_splits: 5
+
+  separation:
+    model_name: "htdemucs"
+    film_audio_path: "data/test/come-drink-with-me/Come Drink With Me.wav"
+    output_dir: "data/stems"
+    music_stem: "other"
+
+  scoring:
+    window_sec: 4.0
+    hop_sec: 0.5
+    batch_size: 32
+
+  postprocessing:
+    p_high: 0.65
+    p_low: 0.35
+    median_filter_sec: 1.5
+    min_duration_sec: 1.0
+
+  paths:
+    data_dir: "data/train"
+    standardized_dir: "data/ast/standardized"
+    segments_dir: "data/ast/augmented_segments"
+    features_dir: "data/ast/features"
+    model_checkpoint: "models/ast_probing_head.pt"
+    probabilities_path: "reports/ast_probing_raw_probabilities.npy"
+    annotation_json: "reports/ast_inference_eval_come_drink_with_me.json"
+    annotation_csv: "reports/ast_inference_eval_come_drink_with_me.csv"
+    cuesheet: "data/test/come-drink-with-me/Film Music Cue Sheet for Come Drink with Me (English) - English Version.csv"
+    mapping: "data/test/come-drink-with-me/instrument_mapping.json"
