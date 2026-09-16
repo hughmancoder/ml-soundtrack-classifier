@@ -30,7 +30,7 @@ training:
   epochs: 50
   learning_rate: 0.0001
   num_workers: 4
-  early_stopping_patience: 5
+  early_stopping_patience: 8
 
 augmentation:
   spec_augment: false
@@ -38,7 +38,7 @@ augmentation:
 
 degradation:
   enabled: true
-  probability: 80  # 50% chance to degrade an audio clip during training
+  probability: 80  # % chance to degrade an audio clip during training
   sample_rate: 44100
 
 paths:

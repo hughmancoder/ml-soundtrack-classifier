@@ -1,0 +1,2148 @@
+{
+  "metadata": {
+    "model_path": "models/crnn_best.pt",
+    "audio_path": "data/raw/Come Drink With Me.mp4",
+    "wav_processed": "data/raw/Come Drink With Me_22050.wav",
+    "cuesheet_path": "data/test/come-drink-with-me/Film Music Cue Sheet for Come Drink with Me (English) - English Version.csv",
+    "mapping_path": "data/test/come-drink-with-me/instrument_mapping.json",
+    "evaluation_timestamp": "2026-09-16T14:24:14.206665",
+    "elapsed_seconds": 574.91,
+    "window_sec": 8.0,
+    "stride_sec": 2.0,
+    "sample_rate": 22050,
+    "rms_threshold": 0.001,
+    "device": "mps",
+    "total_audio_duration_sec": 5687.32,
+    "total_windows": 2840
+  },
+  "overall_metrics": {
+    "music_cues": {
+      "total_windows": 1177,
+      "top1_hits": 455,
+      "top1_accuracy_percent": 38.66,
+      "top3_hits": 1063,
+      "top3_accuracy_percent": 90.31
+    },
+    "non_music": {
+      "total_windows": 1663,
+      "correct_rejections": 1038,
+      "accuracy_percent": 62.42
+    },
+    "total_film": {
+      "total_windows": 2840,
+      "total_correct": 1493,
+      "overall_accuracy_percent": 52.57
+    }
+  },
+  "per_class_metrics": {
+    "sheng": {
+      "gt_active_windows": 363,
+      "predicted_windows": 0,
+      "hits_when_active": 0,
+      "precision_percent": 0.0,
+      "recall_detection_percent": 0.0
+    },
+    "dizi": {
+      "gt_active_windows": 795,
+      "predicted_windows": 6,
+      "hits_when_active": 6,
+      "precision_percent": 100.0,
+      "recall_detection_percent": 0.75
+    },
+    "erhu": {
+      "gt_active_windows": 1004,
+      "predicted_windows": 0,
+      "hits_when_active": 0,
+      "precision_percent": 0.0,
+      "recall_detection_percent": 0.0
+    },
+    "pipa": {
+      "gt_active_windows": 584,
+      "predicted_windows": 0,
+      "hits_when_active": 0,
+      "precision_percent": 0.0,
+      "recall_detection_percent": 0.0
+    },
+    "suona": {
+      "gt_active_windows": 81,
+      "predicted_windows": 0,
+      "hits_when_active": 0,
+      "precision_percent": 0.0,
+      "recall_detection_percent": 0.0
+    },
+    "guzheng": {
+      "gt_active_windows": 233,
+      "predicted_windows": 140,
+      "hits_when_active": 33,
+      "precision_percent": 23.57,
+      "recall_detection_percent": 14.16
+    },
+    "yangqin": {
+      "gt_active_windows": 230,
+      "predicted_windows": 0,
+      "hits_when_active": 0,
+      "precision_percent": 0.0,
+      "recall_detection_percent": 0.0
+    },
+    "percussion": {
+      "gt_active_windows": 1059,
+      "predicted_windows": 863,
+      "hits_when_active": 362,
+      "precision_percent": 41.95,
+      "recall_detection_percent": 34.18
+    },
+    "strings": {
+      "gt_active_windows": 456,
+      "predicted_windows": 170,
+      "hits_when_active": 54,
+      "precision_percent": 31.76,
+      "recall_detection_percent": 11.84
+    },
+    "woodwind": {
+      "gt_active_windows": 42,
+      "predicted_windows": 7,
+      "hits_when_active": 0,
+      "precision_percent": 0.0,
+      "recall_detection_percent": 0.0
+    },
+    "brass": {
+      "gt_active_windows": 0,
+      "predicted_windows": 20,
+      "hits_when_active": 0,
+      "precision_percent": 0.0,
+      "recall_detection_percent": 0.0
+    },
+    "nonmusic": {
+      "gt_active_windows": 0,
+      "predicted_windows": 1634,
+      "hits_when_active": 0,
+      "precision_percent": 0.0,
+      "recall_detection_percent": 0.0
+    }
+  },
+  "per_cue_evaluations": [
+    {
+      "cue_id": 1,
+      "time_period": "00:00:28 - 00:01:33",
+      "start_sec": 28.0,
+      "end_sec": 93.0,
+      "duration_sec": 65.0,
+      "plot_description": "officers and soldiers",
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings",
+        "suona"
+      ],
+      "total_windows": 33,
+      "top1_hits": 28,
+      "top1_accuracy_percent": 84.85,
+      "top3_hits": 33,
+      "top3_accuracy_percent": 100.0,
+      "prediction_distribution": {
+        "strings": 25,
+        "percussion": 3,
+        "brass": 3,
+        "guzheng": 2
+      }
+    },
+    {
+      "cue_id": 2,
+      "time_period": "00:03:01 - 00:03:30",
+      "start_sec": 181.0,
+      "end_sec": 210.0,
+      "duration_sec": 29.0,
+      "plot_description": "Taking officers and soldiers hostage",
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa"
+      ],
+      "total_windows": 15,
+      "top1_hits": 7,
+      "top1_accuracy_percent": 46.67,
+      "top3_hits": 15,
+      "top3_accuracy_percent": 100.0,
+      "prediction_distribution": {
+        "nonmusic": 7,
+        "percussion": 7,
+        "strings": 1
+      }
+    },
+    {
+      "cue_id": 3,
+      "time_period": "00:04:18 - 00:04:52",
+      "start_sec": 258.0,
+      "end_sec": 292.0,
+      "duration_sec": 34.0,
+      "plot_description": "Siege",
+      "ground_truth_classes": [
+        "erhu",
+        "strings",
+        "woodwind",
+        "yangqin"
+      ],
+      "total_windows": 18,
+      "top1_hits": 0,
+      "top1_accuracy_percent": 0.0,
+      "top3_hits": 4,
+      "top3_accuracy_percent": 22.22,
+      "prediction_distribution": {
+        "nonmusic": 12,
+        "guzheng": 6
+      }
+    },
+    {
+      "cue_id": 4,
+      "time_period": "00:07:45 - 00:08:55",
+      "start_sec": 465.0,
+      "end_sec": 535.0,
+      "duration_sec": 70.0,
+      "plot_description": "Golden Swallow appears",
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion"
+      ],
+      "total_windows": 35,
+      "top1_hits": 3,
+      "top1_accuracy_percent": 8.57,
+      "top3_hits": 31,
+      "top3_accuracy_percent": 88.57,
+      "prediction_distribution": {
+        "nonmusic": 27,
+        "brass": 5,
+        "percussion": 3
+      }
+    },
+    {
+      "cue_id": 5,
+      "time_period": "00:09:52 - 00:10:38",
+      "start_sec": 592.0,
+      "end_sec": 638.0,
+      "duration_sec": 46.0,
+      "plot_description": "Character descriptions in the inn",
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "woodwind"
+      ],
+      "total_windows": 24,
+      "top1_hits": 21,
+      "top1_accuracy_percent": 87.5,
+      "top3_hits": 24,
+      "top3_accuracy_percent": 100.0,
+      "prediction_distribution": {
+        "percussion": 21,
+        "nonmusic": 3
+      }
+    },
+    {
+      "cue_id": 6,
+      "time_period": "00:10:40 - 00:11:04",
+      "start_sec": 640.0,
+      "end_sec": 664.0,
+      "duration_sec": 24.0,
+      "plot_description": "Golden Swallow enters the inn",
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "yangqin"
+      ],
+      "total_windows": 13,
+      "top1_hits": 4,
+      "top1_accuracy_percent": 30.77,
+      "top3_hits": 12,
+      "top3_accuracy_percent": 92.31,
+      "prediction_distribution": {
+        "nonmusic": 9,
+        "percussion": 4
+      }
+    },
+    {
+      "cue_id": 7,
+      "time_period": "00:12:40 - 00:14:46",
+      "start_sec": 760.0,
+      "end_sec": 886.0,
+      "duration_sec": 126.0,
+      "plot_description": "Inn Showdown",
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "guzheng",
+        "percussion",
+        "pipa",
+        "yangqin"
+      ],
+      "total_windows": 64,
+      "top1_hits": 14,
+      "top1_accuracy_percent": 21.88,
+      "top3_hits": 64,
+      "top3_accuracy_percent": 100.0,
+      "prediction_distribution": {
+        "nonmusic": 50,
+        "percussion": 14
+      }
+    },
+    {
+      "cue_id": 8,
+      "time_period": "00:15:28 - 00:15:56",
+      "start_sec": 928.0,
+      "end_sec": 956.0,
+      "duration_sec": 28.0,
+      "plot_description": "Prepare to besiege Golden Swallow, the Drunken Swordsman makes his appearance.",
+      "ground_truth_classes": [
+        "percussion",
+        "yangqin"
+      ],
+      "total_windows": 15,
+      "top1_hits": 2,
+      "top1_accuracy_percent": 13.33,
+      "top3_hits": 15,
+      "top3_accuracy_percent": 100.0,
+      "prediction_distribution": {
+        "nonmusic": 13,
+        "percussion": 2
+      }
+    },
+    {
+      "cue_id": 9,
+      "time_period": "00:16:29 - 00:18:52",
+      "start_sec": 989.0,
+      "end_sec": 1132.0,
+      "duration_sec": 143.0,
+      "plot_description": "Siege of the Golden Swallow",
+      "ground_truth_classes": [
+        "erhu",
+        "percussion",
+        "yangqin"
+      ],
+      "total_windows": 72,
+      "top1_hits": 9,
+      "top1_accuracy_percent": 12.5,
+      "top3_hits": 72,
+      "top3_accuracy_percent": 100.0,
+      "prediction_distribution": {
+        "nonmusic": 61,
+        "percussion": 9,
+        "strings": 2
+      }
+    },
+    {
+      "cue_id": 10,
+      "time_period": "00:22:50 - 00:23:52",
+      "start_sec": 1370.0,
+      "end_sec": 1432.0,
+      "duration_sec": 62.0,
+      "plot_description": "Golden Swallow enters the bedroom",
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "sheng",
+        "yangqin"
+      ],
+      "total_windows": 32,
+      "top1_hits": 0,
+      "top1_accuracy_percent": 0.0,
+      "top3_hits": 32,
+      "top3_accuracy_percent": 100.0,
+      "prediction_distribution": {
+        "nonmusic": 32
+      }
+    },
+    {
+      "cue_id": 11,
+      "time_period": "00:24:42 - 00:27:24",
+      "start_sec": 1482.0,
+      "end_sec": 1644.0,
+      "duration_sec": 162.0,
+      "plot_description": "After driving away the drunken swordsman, Golden Swallow pondered.",
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "sheng"
+      ],
+      "total_windows": 82,
+      "top1_hits": 29,
+      "top1_accuracy_percent": 35.37,
+      "top3_hits": 75,
+      "top3_accuracy_percent": 91.46,
+      "prediction_distribution": {
+        "nonmusic": 40,
+        "percussion": 27,
+        "guzheng": 12,
+        "dizi": 2,
+        "strings": 1
+      }
+    },
+    {
+      "cue_id": 12,
+      "time_period": "00:27:25 - 00:28:46",
+      "start_sec": 1645.0,
+      "end_sec": 1726.0,
+      "duration_sec": 81.0,
+      "plot_description": "Night Raid on the Golden Swallow",
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion"
+      ],
+      "total_windows": 41,
+      "top1_hits": 34,
+      "top1_accuracy_percent": 82.93,
+      "top3_hits": 41,
+      "top3_accuracy_percent": 100.0,
+      "prediction_distribution": {
+        "percussion": 34,
+        "nonmusic": 7
+      }
+    },
+    {
+      "cue_id": 13,
+      "time_period": "00:28:46 - 00:30:44",
+      "start_sec": 1726.0,
+      "end_sec": 1844.0,
+      "duration_sec": 118.0,
+      "plot_description": "The Drunken Swordsman Rat Treasure",
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "sheng",
+        "strings"
+      ],
+      "total_windows": 60,
+      "top1_hits": 26,
+      "top1_accuracy_percent": 43.33,
+      "top3_hits": 60,
+      "top3_accuracy_percent": 100.0,
+      "prediction_distribution": {
+        "percussion": 21,
+        "guzheng": 20,
+        "nonmusic": 14,
+        "strings": 5
+      }
+    },
+    {
+      "cue_id": 14,
+      "time_period": "00:33:22 - 00:34:00",
+      "start_sec": 2002.0,
+      "end_sec": 2040.0,
+      "duration_sec": 38.0,
+      "plot_description": "The Drunken Swordsman's song hints at Golden Swallow",
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "sheng",
+        "strings"
+      ],
+      "total_windows": 20,
+      "top1_hits": 3,
+      "top1_accuracy_percent": 15.0,
+      "top3_hits": 20,
+      "top3_accuracy_percent": 100.0,
+      "prediction_distribution": {
+        "nonmusic": 17,
+        "percussion": 3
+      }
+    },
+    {
+      "cue_id": 15,
+      "time_period": "00:35:23 - 00:36:58",
+      "start_sec": 2123.0,
+      "end_sec": 2218.0,
+      "duration_sec": 95.0,
+      "plot_description": "The Drunken Swordsman then hinted",
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa"
+      ],
+      "total_windows": 48,
+      "top1_hits": 5,
+      "top1_accuracy_percent": 10.42,
+      "top3_hits": 44,
+      "top3_accuracy_percent": 91.67,
+      "prediction_distribution": {
+        "nonmusic": 35,
+        "strings": 7,
+        "percussion": 5,
+        "brass": 1
+      }
+    },
+    {
+      "cue_id": 16,
+      "time_period": "00:37:25 - 00:39:42",
+      "start_sec": 2245.0,
+      "end_sec": 2382.0,
+      "duration_sec": 137.0,
+      "plot_description": "Transiting places, temples",
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "guzheng",
+        "percussion",
+        "sheng"
+      ],
+      "total_windows": 69,
+      "top1_hits": 58,
+      "top1_accuracy_percent": 84.06,
+      "top3_hits": 69,
+      "top3_accuracy_percent": 100.0,
+      "prediction_distribution": {
+        "guzheng": 28,
+        "percussion": 26,
+        "strings": 8,
+        "dizi": 4,
+        "woodwind": 2,
+        "nonmusic": 1
+      }
+    },
+    {
+      "cue_id": 17,
+      "time_period": "00:39:52 - 00:42:05",
+      "start_sec": 2392.0,
+      "end_sec": 2525.0,
+      "duration_sec": 133.0,
+      "plot_description": "Kidnapping Golden Swallow",
+      "ground_truth_classes": [
+        "erhu",
+        "percussion",
+        "pipa"
+      ],
+      "total_windows": 67,
+      "top1_hits": 31,
+      "top1_accuracy_percent": 46.27,
+      "top3_hits": 67,
+      "top3_accuracy_percent": 100.0,
+      "prediction_distribution": {
+        "nonmusic": 33,
+        "percussion": 31,
+        "guzheng": 3
+      }
+    },
+    {
+      "cue_id": 18,
+      "time_period": "00:48:37 - 00:51:14",
+      "start_sec": 2917.0,
+      "end_sec": 3074.0,
+      "duration_sec": 157.0,
+      "plot_description": "Catching the Golden Swallow",
+      "ground_truth_classes": [
+        "erhu",
+        "guzheng",
+        "percussion",
+        "pipa",
+        "sheng",
+        "strings"
+      ],
+      "total_windows": 79,
+      "top1_hits": 48,
+      "top1_accuracy_percent": 60.76,
+      "top3_hits": 79,
+      "top3_accuracy_percent": 100.0,
+      "prediction_distribution": {
+        "percussion": 45,
+        "nonmusic": 31,
+        "strings": 3
+      }
+    },
+    {
+      "cue_id": 19,
+      "time_period": "00:52:47 - 00:53:29",
+      "start_sec": 3167.0,
+      "end_sec": 3209.0,
+      "duration_sec": 42.0,
+      "plot_description": "Golden Swallow poisoning and dizziness",
+      "ground_truth_classes": [
+        "erhu",
+        "guzheng",
+        "percussion",
+        "pipa",
+        "sheng"
+      ],
+      "total_windows": 21,
+      "top1_hits": 21,
+      "top1_accuracy_percent": 100.0,
+      "top3_hits": 21,
+      "top3_accuracy_percent": 100.0,
+      "prediction_distribution": {
+        "percussion": 16,
+        "guzheng": 5
+      }
+    },
+    {
+      "cue_id": 20,
+      "time_period": "00:53:29 - 00:54:10",
+      "start_sec": 3209.0,
+      "end_sec": 3250.0,
+      "duration_sec": 41.0,
+      "plot_description": "Jade-faced Tiger reprimands his subordinates",
+      "ground_truth_classes": [
+        "percussion"
+      ],
+      "total_windows": 21,
+      "top1_hits": 11,
+      "top1_accuracy_percent": 52.38,
+      "top3_hits": 21,
+      "top3_accuracy_percent": 100.0,
+      "prediction_distribution": {
+        "percussion": 11,
+        "nonmusic": 10
+      }
+    },
+    {
+      "cue_id": 21,
+      "time_period": "00:54:12 - 00:55:28",
+      "start_sec": 3252.0,
+      "end_sec": 3328.0,
+      "duration_sec": 76.0,
+      "plot_description": "The Drunken Swordsman sucks out the venom for Golden Swallow",
+      "ground_truth_classes": [
+        "erhu",
+        "strings"
+      ],
+      "total_windows": 39,
+      "top1_hits": 1,
+      "top1_accuracy_percent": 2.56,
+      "top3_hits": 5,
+      "top3_accuracy_percent": 12.82,
+      "prediction_distribution": {
+        "nonmusic": 26,
+        "percussion": 8,
+        "guzheng": 4,
+        "strings": 1
+      }
+    },
+    {
+      "cue_id": 22,
+      "time_period": "00:55:30 - 00:55:47",
+      "start_sec": 3330.0,
+      "end_sec": 3347.0,
+      "duration_sec": 17.0,
+      "plot_description": "The bandits found the Drunken Swordsman and Golden Swallow.",
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings"
+      ],
+      "total_windows": 9,
+      "top1_hits": 6,
+      "top1_accuracy_percent": 66.67,
+      "top3_hits": 9,
+      "top3_accuracy_percent": 100.0,
+      "prediction_distribution": {
+        "percussion": 6,
+        "guzheng": 3
+      }
+    },
+    {
+      "cue_id": 23,
+      "time_period": "00:57:42 - 00:58:04",
+      "start_sec": 3462.0,
+      "end_sec": 3484.0,
+      "duration_sec": 22.0,
+      "plot_description": "The Drunken Swordsman kills the gang of thieves chasing Golden Swallow.",
+      "ground_truth_classes": [
+        "erhu",
+        "pipa",
+        "strings"
+      ],
+      "total_windows": 12,
+      "top1_hits": 0,
+      "top1_accuracy_percent": 0.0,
+      "top3_hits": 1,
+      "top3_accuracy_percent": 8.33,
+      "prediction_distribution": {
+        "percussion": 9,
+        "brass": 3
+      }
+    },
+    {
+      "cue_id": 24,
+      "time_period": "01:02:09 - 01:02:40",
+      "start_sec": 3729.0,
+      "end_sec": 3760.0,
+      "duration_sec": 31.0,
+      "plot_description": "Master Liaokong returns",
+      "ground_truth_classes": [
+        "dizi",
+        "pipa",
+        "strings",
+        "suona"
+      ],
+      "total_windows": 16,
+      "top1_hits": 0,
+      "top1_accuracy_percent": 0.0,
+      "top3_hits": 0,
+      "top3_accuracy_percent": 0.0,
+      "prediction_distribution": {
+        "nonmusic": 14,
+        "percussion": 2
+      }
+    },
+    {
+      "cue_id": 25,
+      "time_period": "01:05:01 - 01:05:34",
+      "start_sec": 3901.0,
+      "end_sec": 3934.0,
+      "duration_sec": 33.0,
+      "plot_description": "Capture the Drunken Swordsman",
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "pipa",
+        "strings"
+      ],
+      "total_windows": 17,
+      "top1_hits": 14,
+      "top1_accuracy_percent": 82.35,
+      "top3_hits": 15,
+      "top3_accuracy_percent": 88.24,
+      "prediction_distribution": {
+        "strings": 14,
+        "nonmusic": 2,
+        "percussion": 1
+      }
+    },
+    {
+      "cue_id": 26,
+      "time_period": "01:10:33 - 01:11:41",
+      "start_sec": 4233.0,
+      "end_sec": 4301.0,
+      "duration_sec": 68.0,
+      "plot_description": "The Drunken Swordsman recounts the kindness shown to Master Kong.",
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings"
+      ],
+      "total_windows": 34,
+      "top1_hits": 22,
+      "top1_accuracy_percent": 64.71,
+      "top3_hits": 34,
+      "top3_accuracy_percent": 100.0,
+      "prediction_distribution": {
+        "percussion": 22,
+        "nonmusic": 12
+      }
+    },
+    {
+      "cue_id": 27,
+      "time_period": "01:12:27 - 01:12:43",
+      "start_sec": 4347.0,
+      "end_sec": 4363.0,
+      "duration_sec": 16.0,
+      "plot_description": "The Drunken Swordsman met Master Kong",
+      "ground_truth_classes": [
+        "dizi",
+        "percussion",
+        "pipa",
+        "strings"
+      ],
+      "total_windows": 8,
+      "top1_hits": 4,
+      "top1_accuracy_percent": 50.0,
+      "top3_hits": 8,
+      "top3_accuracy_percent": 100.0,
+      "prediction_distribution": {
+        "percussion": 4,
+        "nonmusic": 4
+      }
+    },
+    {
+      "cue_id": 28,
+      "time_period": "01:15:06 - 01:15:37",
+      "start_sec": 4506.0,
+      "end_sec": 4537.0,
+      "duration_sec": 31.0,
+      "plot_description": "hostage exchange",
+      "ground_truth_classes": [
+        "dizi",
+        "pipa",
+        "strings",
+        "suona"
+      ],
+      "total_windows": 16,
+      "top1_hits": 0,
+      "top1_accuracy_percent": 0.0,
+      "top3_hits": 0,
+      "top3_accuracy_percent": 0.0,
+      "prediction_distribution": {
+        "nonmusic": 11,
+        "percussion": 5
+      }
+    },
+    {
+      "cue_id": 29,
+      "time_period": "01:15:44 - 01:16:59",
+      "start_sec": 4544.0,
+      "end_sec": 4619.0,
+      "duration_sec": 75.0,
+      "plot_description": "hostage exchange",
+      "ground_truth_classes": [
+        "percussion"
+      ],
+      "total_windows": 38,
+      "top1_hits": 6,
+      "top1_accuracy_percent": 15.79,
+      "top3_hits": 38,
+      "top3_accuracy_percent": 100.0,
+      "prediction_distribution": {
+        "nonmusic": 28,
+        "percussion": 6,
+        "strings": 4
+      }
+    },
+    {
+      "cue_id": 30,
+      "time_period": "01:18:48 - 01:20:07",
+      "start_sec": 4728.0,
+      "end_sec": 4807.0,
+      "duration_sec": 79.0,
+      "plot_description": "Golden Swallow and her group were ambushed",
+      "ground_truth_classes": [
+        "dizi",
+        "percussion",
+        "strings"
+      ],
+      "total_windows": 40,
+      "top1_hits": 8,
+      "top1_accuracy_percent": 20.0,
+      "top3_hits": 40,
+      "top3_accuracy_percent": 100.0,
+      "prediction_distribution": {
+        "nonmusic": 32,
+        "strings": 6,
+        "percussion": 2
+      }
+    },
+    {
+      "cue_id": 31,
+      "time_period": "01:26:04 - 01:26:42",
+      "start_sec": 5164.0,
+      "end_sec": 5202.0,
+      "duration_sec": 38.0,
+      "plot_description": "The Drunken Swordsman let Master Kong go.",
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings"
+      ],
+      "total_windows": 20,
+      "top1_hits": 2,
+      "top1_accuracy_percent": 10.0,
+      "top3_hits": 20,
+      "top3_accuracy_percent": 100.0,
+      "prediction_distribution": {
+        "nonmusic": 18,
+        "percussion": 2
+      }
+    },
+    {
+      "cue_id": 32,
+      "time_period": "01:26:42 - 01:28:52",
+      "start_sec": 5202.0,
+      "end_sec": 5332.0,
+      "duration_sec": 130.0,
+      "plot_description": "Liao Kong sneaked back and ambushed the Drunken Swordsman.",
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion"
+      ],
+      "total_windows": 66,
+      "top1_hits": 28,
+      "top1_accuracy_percent": 42.42,
+      "top3_hits": 66,
+      "top3_accuracy_percent": 100.0,
+      "prediction_distribution": {
+        "nonmusic": 38,
+        "percussion": 28
+      }
+    },
+    {
+      "cue_id": 33,
+      "time_period": "01:29:33 - 01:30:11",
+      "start_sec": 5373.0,
+      "end_sec": 5411.0,
+      "duration_sec": 38.0,
+      "plot_description": "The Drunken Swordsman Ended Master Kong's Life",
+      "ground_truth_classes": [
+        "dizi",
+        "percussion",
+        "pipa",
+        "strings"
+      ],
+      "total_windows": 19,
+      "top1_hits": 11,
+      "top1_accuracy_percent": 57.89,
+      "top3_hits": 19,
+      "top3_accuracy_percent": 100.0,
+      "prediction_distribution": {
+        "percussion": 11,
+        "nonmusic": 5,
+        "guzheng": 3
+      }
+    },
+    {
+      "cue_id": 34,
+      "time_period": "01:30:12 - 01:30:42",
+      "start_sec": 5412.0,
+      "end_sec": 5442.0,
+      "duration_sec": 30.0,
+      "plot_description": "Golden Swallow flies away, the show ends.",
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "strings",
+        "suona",
+        "yangqin"
+      ],
+      "total_windows": 16,
+      "top1_hits": 0,
+      "top1_accuracy_percent": 0.0,
+      "top3_hits": 11,
+      "top3_accuracy_percent": 68.75,
+      "prediction_distribution": {
+        "guzheng": 11,
+        "nonmusic": 5
+      }
+    }
+  ],
+  "window_predictions_sample": [
+    {
+      "window_index": 0,
+      "start_sec": 0.0,
+      "end_sec": 8.0,
+      "mid_sec": 4.0,
+      "rms_energy": 0.0,
+      "is_silent": true,
+      "predicted_class": "nonmusic",
+      "confidence": 1.0,
+      "top3_classes": [
+        "nonmusic",
+        "percussion",
+        "nonmusic"
+      ],
+      "ground_truth_classes": [
+        "nonmusic"
+      ],
+      "is_music_cue": false,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 1,
+      "start_sec": 2.0,
+      "end_sec": 10.0,
+      "mid_sec": 6.0,
+      "rms_energy": 0.0,
+      "is_silent": true,
+      "predicted_class": "nonmusic",
+      "confidence": 1.0,
+      "top3_classes": [
+        "nonmusic",
+        "percussion",
+        "nonmusic"
+      ],
+      "ground_truth_classes": [
+        "nonmusic"
+      ],
+      "is_music_cue": false,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 2,
+      "start_sec": 4.0,
+      "end_sec": 12.0,
+      "mid_sec": 8.0,
+      "rms_energy": 0.0,
+      "is_silent": true,
+      "predicted_class": "nonmusic",
+      "confidence": 1.0,
+      "top3_classes": [
+        "nonmusic",
+        "percussion",
+        "nonmusic"
+      ],
+      "ground_truth_classes": [
+        "nonmusic"
+      ],
+      "is_music_cue": false,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 3,
+      "start_sec": 6.0,
+      "end_sec": 14.0,
+      "mid_sec": 10.0,
+      "rms_energy": 0.007665,
+      "is_silent": false,
+      "predicted_class": "percussion",
+      "confidence": 0.883,
+      "top3_classes": [
+        "percussion",
+        "nonmusic",
+        "guzheng"
+      ],
+      "ground_truth_classes": [
+        "nonmusic"
+      ],
+      "is_music_cue": false,
+      "is_hit": false,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 4,
+      "start_sec": 8.0,
+      "end_sec": 16.0,
+      "mid_sec": 12.0,
+      "rms_energy": 0.008333,
+      "is_silent": false,
+      "predicted_class": "percussion",
+      "confidence": 0.7513,
+      "top3_classes": [
+        "percussion",
+        "guzheng",
+        "nonmusic"
+      ],
+      "ground_truth_classes": [
+        "nonmusic"
+      ],
+      "is_music_cue": false,
+      "is_hit": false,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 5,
+      "start_sec": 10.0,
+      "end_sec": 18.0,
+      "mid_sec": 14.0,
+      "rms_energy": 0.016234,
+      "is_silent": false,
+      "predicted_class": "percussion",
+      "confidence": 0.2977,
+      "top3_classes": [
+        "percussion",
+        "guzheng",
+        "strings"
+      ],
+      "ground_truth_classes": [
+        "nonmusic"
+      ],
+      "is_music_cue": false,
+      "is_hit": false,
+      "is_top3_hit": false
+    },
+    {
+      "window_index": 6,
+      "start_sec": 12.0,
+      "end_sec": 20.0,
+      "mid_sec": 16.0,
+      "rms_energy": 0.043591,
+      "is_silent": false,
+      "predicted_class": "strings",
+      "confidence": 0.4009,
+      "top3_classes": [
+        "strings",
+        "woodwind",
+        "guzheng"
+      ],
+      "ground_truth_classes": [
+        "nonmusic"
+      ],
+      "is_music_cue": false,
+      "is_hit": false,
+      "is_top3_hit": false
+    },
+    {
+      "window_index": 7,
+      "start_sec": 14.0,
+      "end_sec": 22.0,
+      "mid_sec": 18.0,
+      "rms_energy": 0.043421,
+      "is_silent": false,
+      "predicted_class": "strings",
+      "confidence": 0.408,
+      "top3_classes": [
+        "strings",
+        "woodwind",
+        "percussion"
+      ],
+      "ground_truth_classes": [
+        "nonmusic"
+      ],
+      "is_music_cue": false,
+      "is_hit": false,
+      "is_top3_hit": false
+    },
+    {
+      "window_index": 8,
+      "start_sec": 16.0,
+      "end_sec": 24.0,
+      "mid_sec": 20.0,
+      "rms_energy": 0.044603,
+      "is_silent": false,
+      "predicted_class": "percussion",
+      "confidence": 0.282,
+      "top3_classes": [
+        "percussion",
+        "strings",
+        "brass"
+      ],
+      "ground_truth_classes": [
+        "nonmusic"
+      ],
+      "is_music_cue": false,
+      "is_hit": false,
+      "is_top3_hit": false
+    },
+    {
+      "window_index": 9,
+      "start_sec": 18.0,
+      "end_sec": 26.0,
+      "mid_sec": 22.0,
+      "rms_energy": 0.044214,
+      "is_silent": false,
+      "predicted_class": "nonmusic",
+      "confidence": 0.385,
+      "top3_classes": [
+        "nonmusic",
+        "percussion",
+        "brass"
+      ],
+      "ground_truth_classes": [
+        "nonmusic"
+      ],
+      "is_music_cue": false,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 10,
+      "start_sec": 20.0,
+      "end_sec": 28.0,
+      "mid_sec": 24.0,
+      "rms_energy": 0.025704,
+      "is_silent": false,
+      "predicted_class": "nonmusic",
+      "confidence": 0.5651,
+      "top3_classes": [
+        "nonmusic",
+        "percussion",
+        "brass"
+      ],
+      "ground_truth_classes": [
+        "nonmusic"
+      ],
+      "is_music_cue": false,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 11,
+      "start_sec": 22.0,
+      "end_sec": 30.0,
+      "mid_sec": 26.0,
+      "rms_energy": 0.034928,
+      "is_silent": false,
+      "predicted_class": "nonmusic",
+      "confidence": 0.4047,
+      "top3_classes": [
+        "nonmusic",
+        "percussion",
+        "strings"
+      ],
+      "ground_truth_classes": [
+        "nonmusic"
+      ],
+      "is_music_cue": false,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 12,
+      "start_sec": 24.0,
+      "end_sec": 32.0,
+      "mid_sec": 28.0,
+      "rms_energy": 0.038958,
+      "is_silent": false,
+      "predicted_class": "strings",
+      "confidence": 0.644,
+      "top3_classes": [
+        "strings",
+        "percussion",
+        "woodwind"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 13,
+      "start_sec": 26.0,
+      "end_sec": 34.0,
+      "mid_sec": 30.0,
+      "rms_energy": 0.041963,
+      "is_silent": false,
+      "predicted_class": "strings",
+      "confidence": 0.8627,
+      "top3_classes": [
+        "strings",
+        "percussion",
+        "woodwind"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 14,
+      "start_sec": 28.0,
+      "end_sec": 36.0,
+      "mid_sec": 32.0,
+      "rms_energy": 0.044902,
+      "is_silent": false,
+      "predicted_class": "strings",
+      "confidence": 0.9258,
+      "top3_classes": [
+        "strings",
+        "woodwind",
+        "percussion"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 15,
+      "start_sec": 30.0,
+      "end_sec": 38.0,
+      "mid_sec": 34.0,
+      "rms_energy": 0.040446,
+      "is_silent": false,
+      "predicted_class": "strings",
+      "confidence": 0.7617,
+      "top3_classes": [
+        "strings",
+        "percussion",
+        "brass"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 16,
+      "start_sec": 32.0,
+      "end_sec": 40.0,
+      "mid_sec": 36.0,
+      "rms_energy": 0.039396,
+      "is_silent": false,
+      "predicted_class": "percussion",
+      "confidence": 0.4496,
+      "top3_classes": [
+        "percussion",
+        "strings",
+        "nonmusic"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 17,
+      "start_sec": 34.0,
+      "end_sec": 42.0,
+      "mid_sec": 38.0,
+      "rms_energy": 0.041912,
+      "is_silent": false,
+      "predicted_class": "percussion",
+      "confidence": 0.4652,
+      "top3_classes": [
+        "percussion",
+        "strings",
+        "brass"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 18,
+      "start_sec": 36.0,
+      "end_sec": 44.0,
+      "mid_sec": 40.0,
+      "rms_energy": 0.043018,
+      "is_silent": false,
+      "predicted_class": "percussion",
+      "confidence": 0.4094,
+      "top3_classes": [
+        "percussion",
+        "brass",
+        "strings"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 19,
+      "start_sec": 38.0,
+      "end_sec": 46.0,
+      "mid_sec": 42.0,
+      "rms_energy": 0.046859,
+      "is_silent": false,
+      "predicted_class": "brass",
+      "confidence": 0.5313,
+      "top3_classes": [
+        "brass",
+        "percussion",
+        "strings"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": false,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 20,
+      "start_sec": 40.0,
+      "end_sec": 48.0,
+      "mid_sec": 44.0,
+      "rms_energy": 0.048871,
+      "is_silent": false,
+      "predicted_class": "brass",
+      "confidence": 0.5174,
+      "top3_classes": [
+        "brass",
+        "strings",
+        "woodwind"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": false,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 21,
+      "start_sec": 42.0,
+      "end_sec": 50.0,
+      "mid_sec": 46.0,
+      "rms_energy": 0.048689,
+      "is_silent": false,
+      "predicted_class": "brass",
+      "confidence": 0.532,
+      "top3_classes": [
+        "brass",
+        "strings",
+        "woodwind"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": false,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 22,
+      "start_sec": 44.0,
+      "end_sec": 52.0,
+      "mid_sec": 48.0,
+      "rms_energy": 0.044359,
+      "is_silent": false,
+      "predicted_class": "strings",
+      "confidence": 0.6094,
+      "top3_classes": [
+        "strings",
+        "guzheng",
+        "brass"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 23,
+      "start_sec": 46.0,
+      "end_sec": 54.0,
+      "mid_sec": 50.0,
+      "rms_energy": 0.038691,
+      "is_silent": false,
+      "predicted_class": "strings",
+      "confidence": 0.6612,
+      "top3_classes": [
+        "strings",
+        "guzheng",
+        "woodwind"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 24,
+      "start_sec": 48.0,
+      "end_sec": 56.0,
+      "mid_sec": 52.0,
+      "rms_energy": 0.03362,
+      "is_silent": false,
+      "predicted_class": "strings",
+      "confidence": 0.4986,
+      "top3_classes": [
+        "strings",
+        "guzheng",
+        "woodwind"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 25,
+      "start_sec": 50.0,
+      "end_sec": 58.0,
+      "mid_sec": 54.0,
+      "rms_energy": 0.033074,
+      "is_silent": false,
+      "predicted_class": "strings",
+      "confidence": 0.6347,
+      "top3_classes": [
+        "strings",
+        "guzheng",
+        "woodwind"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 26,
+      "start_sec": 52.0,
+      "end_sec": 60.0,
+      "mid_sec": 56.0,
+      "rms_energy": 0.032369,
+      "is_silent": false,
+      "predicted_class": "strings",
+      "confidence": 0.8036,
+      "top3_classes": [
+        "strings",
+        "woodwind",
+        "guzheng"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 27,
+      "start_sec": 54.0,
+      "end_sec": 62.0,
+      "mid_sec": 58.0,
+      "rms_energy": 0.036298,
+      "is_silent": false,
+      "predicted_class": "strings",
+      "confidence": 0.8483,
+      "top3_classes": [
+        "strings",
+        "woodwind",
+        "percussion"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 28,
+      "start_sec": 56.0,
+      "end_sec": 64.0,
+      "mid_sec": 60.0,
+      "rms_energy": 0.037722,
+      "is_silent": false,
+      "predicted_class": "strings",
+      "confidence": 0.8158,
+      "top3_classes": [
+        "strings",
+        "woodwind",
+        "guzheng"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 29,
+      "start_sec": 58.0,
+      "end_sec": 66.0,
+      "mid_sec": 62.0,
+      "rms_energy": 0.034171,
+      "is_silent": false,
+      "predicted_class": "strings",
+      "confidence": 0.7735,
+      "top3_classes": [
+        "strings",
+        "woodwind",
+        "guzheng"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 30,
+      "start_sec": 60.0,
+      "end_sec": 68.0,
+      "mid_sec": 64.0,
+      "rms_energy": 0.037152,
+      "is_silent": false,
+      "predicted_class": "strings",
+      "confidence": 0.7298,
+      "top3_classes": [
+        "strings",
+        "woodwind",
+        "percussion"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 31,
+      "start_sec": 62.0,
+      "end_sec": 70.0,
+      "mid_sec": 66.0,
+      "rms_energy": 0.034699,
+      "is_silent": false,
+      "predicted_class": "strings",
+      "confidence": 0.779,
+      "top3_classes": [
+        "strings",
+        "woodwind",
+        "guzheng"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 32,
+      "start_sec": 64.0,
+      "end_sec": 72.0,
+      "mid_sec": 68.0,
+      "rms_energy": 0.038651,
+      "is_silent": false,
+      "predicted_class": "strings",
+      "confidence": 0.7921,
+      "top3_classes": [
+        "strings",
+        "percussion",
+        "woodwind"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 33,
+      "start_sec": 66.0,
+      "end_sec": 74.0,
+      "mid_sec": 70.0,
+      "rms_energy": 0.035733,
+      "is_silent": false,
+      "predicted_class": "strings",
+      "confidence": 0.7527,
+      "top3_classes": [
+        "strings",
+        "percussion",
+        "woodwind"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 34,
+      "start_sec": 68.0,
+      "end_sec": 76.0,
+      "mid_sec": 72.0,
+      "rms_energy": 0.03055,
+      "is_silent": false,
+      "predicted_class": "strings",
+      "confidence": 0.8539,
+      "top3_classes": [
+        "strings",
+        "woodwind",
+        "guzheng"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 35,
+      "start_sec": 70.0,
+      "end_sec": 78.0,
+      "mid_sec": 74.0,
+      "rms_energy": 0.028402,
+      "is_silent": false,
+      "predicted_class": "strings",
+      "confidence": 0.8226,
+      "top3_classes": [
+        "strings",
+        "woodwind",
+        "guzheng"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 36,
+      "start_sec": 72.0,
+      "end_sec": 80.0,
+      "mid_sec": 76.0,
+      "rms_energy": 0.019016,
+      "is_silent": false,
+      "predicted_class": "strings",
+      "confidence": 0.8882,
+      "top3_classes": [
+        "strings",
+        "woodwind",
+        "guzheng"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 37,
+      "start_sec": 74.0,
+      "end_sec": 82.0,
+      "mid_sec": 78.0,
+      "rms_energy": 0.024794,
+      "is_silent": false,
+      "predicted_class": "strings",
+      "confidence": 0.864,
+      "top3_classes": [
+        "strings",
+        "woodwind",
+        "guzheng"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 38,
+      "start_sec": 76.0,
+      "end_sec": 84.0,
+      "mid_sec": 80.0,
+      "rms_energy": 0.028794,
+      "is_silent": false,
+      "predicted_class": "strings",
+      "confidence": 0.7473,
+      "top3_classes": [
+        "strings",
+        "woodwind",
+        "guzheng"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 39,
+      "start_sec": 78.0,
+      "end_sec": 86.0,
+      "mid_sec": 82.0,
+      "rms_energy": 0.031628,
+      "is_silent": false,
+      "predicted_class": "strings",
+      "confidence": 0.6221,
+      "top3_classes": [
+        "strings",
+        "guzheng",
+        "woodwind"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 40,
+      "start_sec": 80.0,
+      "end_sec": 88.0,
+      "mid_sec": 84.0,
+      "rms_energy": 0.032989,
+      "is_silent": false,
+      "predicted_class": "guzheng",
+      "confidence": 0.417,
+      "top3_classes": [
+        "guzheng",
+        "strings",
+        "woodwind"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": false,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 41,
+      "start_sec": 82.0,
+      "end_sec": 90.0,
+      "mid_sec": 86.0,
+      "rms_energy": 0.032419,
+      "is_silent": false,
+      "predicted_class": "guzheng",
+      "confidence": 0.4796,
+      "top3_classes": [
+        "guzheng",
+        "strings",
+        "woodwind"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": false,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 42,
+      "start_sec": 84.0,
+      "end_sec": 92.0,
+      "mid_sec": 88.0,
+      "rms_energy": 0.029769,
+      "is_silent": false,
+      "predicted_class": "strings",
+      "confidence": 0.4015,
+      "top3_classes": [
+        "strings",
+        "guzheng",
+        "woodwind"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 43,
+      "start_sec": 86.0,
+      "end_sec": 94.0,
+      "mid_sec": 90.0,
+      "rms_energy": 0.028256,
+      "is_silent": false,
+      "predicted_class": "strings",
+      "confidence": 0.4399,
+      "top3_classes": [
+        "strings",
+        "guzheng",
+        "woodwind"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 44,
+      "start_sec": 88.0,
+      "end_sec": 96.0,
+      "mid_sec": 92.0,
+      "rms_energy": 0.027203,
+      "is_silent": false,
+      "predicted_class": "strings",
+      "confidence": 0.4423,
+      "top3_classes": [
+        "strings",
+        "guzheng",
+        "woodwind"
+      ],
+      "ground_truth_classes": [
+        "dizi",
+        "erhu",
+        "percussion",
+        "pipa",
+        "strings",
+        "suona"
+      ],
+      "is_music_cue": true,
+      "is_hit": true,
+      "is_top3_hit": true
+    },
+    {
+      "window_index": 45,
+      "start_sec": 90.0,
+      "end_sec": 98.0,
+      "mid_sec": 94.0,
+      "rms_energy": 0.028117,
+      "is_silent": false,
+      "predicted_class": "guzheng",
+      "confidence": 0.4758,
+      "top3_classes": [
+        "guzheng",
+        "strings",
+        "woodwind"
+      ],
+      "ground_truth_classes": [
+        "nonmusic"
+      ],
+      "is_music_cue": false,
+      "is_hit": false,
+      "is_top3_hit": false
+    },
+    {
+      "window_index": 46,
+      "start_sec": 92.0,
+      "end_sec": 100.0,
+      "mid_sec": 96.0,
+      "rms_energy": 0.031153,
+      "is_silent": false,
+      "predicted_class": "strings",
+      "confidence": 0.5258,
+      "top3_classes": [
+        "strings",
+        "guzheng",
+        "woodwind"
+      ],
+      "ground_truth_classes": [
+        "nonmusic"
+      ],
+      "is_music_cue": false,
+      "is_hit": false,
+      "is_top3_hit": false
+    },
+    {
+      "window_index": 47,
+      "start_sec": 94.0,
+      "end_sec": 102.0,
+      "mid_sec": 98.0,
+      "rms_energy": 0.03748,
+      "is_silent": false,
+      "predicted_class": "strings",
+      "confidence": 0.6582,
+      "top3_classes": [
+        "strings",
+        "guzheng",
+        "woodwind"
+      ],
+      "ground_truth_classes": [
+        "nonmusic"
+      ],
+      "is_music_cue": false,
+      "is_hit": false,
+      "is_top3_hit": false
+    },
+    {
+      "window_index": 48,
+      "start_sec": 96.0,
+      "end_sec": 104.0,
+      "mid_sec": 100.0,
+      "rms_energy": 0.041712,
+      "is_silent": false,
+      "predicted_class": "strings",
+      "confidence": 0.7638,
+      "top3_classes": [
+        "strings",
+        "guzheng",
+        "percussion"
+      ],
+      "ground_truth_classes": [
+        "nonmusic"
+      ],
+      "is_music_cue": false,
+      "is_hit": false,
+      "is_top3_hit": false
+    },
+    {
+      "window_index": 49,
+      "start_sec": 98.0,
+      "end_sec": 106.0,
+      "mid_sec": 102.0,
+      "rms_energy": 0.038652,
+      "is_silent": false,
+      "predicted_class": "strings",
+      "confidence": 0.7094,
+      "top3_classes": [
+        "strings",
+        "percussion",
+        "guzheng"
+      ],
+      "ground_truth_classes": [
+        "nonmusic"
+      ],
+      "is_music_cue": false,
+      "is_hit": false,
+      "is_top3_hit": false
+    }
+  ]
+}

@@ -2,6 +2,13 @@ import os
 import sys
 import yaml
 import torch
+try:
+    import gradio.component_meta
+    gradio.component_meta.create_or_modify_pyi = lambda *args, **kwargs: None
+    import gradio.blocks_events
+    gradio.blocks_events.create_or_modify_pyi = lambda *args, **kwargs: None
+except Exception:
+    pass
 import gradio as gr
 import pandas as pd
 
@@ -11,105 +18,270 @@ class GUISettings:
     SERVER_NAME = "127.0.0.1"
     SHARE_PUBLIC = False
     
-    # Inference Tuning
+    # Model Architecture Selection Variable: "CNN" or "CRNN"
+    DEFAULT_MODEL_TYPE = os.getenv("SOUNDTRACK_DEFAULT_MODEL", "CNN")
+    
+    # Inference Tuning (CNN)
     STRIDE_SEC = 1.0
     RMS_THRESHOLD = 0.001
+    
+    # Inference Tuning (CRNN)
+    CRNN_WINDOW_SEC = 10.0
+    CRNN_HOP_SEC = 2.5
+    CRNN_SR = 22050
+    CRNN_CONFIDENCE_THRESHOLD = 0.35
+    CRNN_INCLUDE_NONMUSIC = False
     
     # UI Layout
     TABLE_ROW_COUNT = 50
 
 # Add src to python path so we can import our pipeline modules
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
+src_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if src_dir not in sys.path:
+    sys.path.insert(0, src_dir)
 
 from soundtrack_classifier.cnn.resnet import ResNet18Classifier
 from soundtrack_classifier.cnn.inference import run_sliding_window_inference
+from soundtrack_classifier.rnn.rnn import ArchivalInstrumentCRNN
+from soundtrack_classifier.rnn.inference import run_streaming_rnn_inference
 
+import shutil
 import subprocess
 import tempfile
 
+def get_base_dir():
+    """Returns the base directory of the project, handling PyInstaller frozen execution."""
+    if getattr(sys, 'frozen', False):
+        return getattr(sys, '_MEIPASS', os.path.dirname(sys.executable))
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+
+def get_ffmpeg_binary():
+    """Locate ffmpeg binary in bundled package, imageio_ffmpeg, system path, or homebrew paths."""
+    # 1. Check imageio_ffmpeg package for bundled self-contained binary
+    try:
+        import imageio_ffmpeg
+        ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
+        if os.path.exists(ffmpeg_exe) and os.access(ffmpeg_exe, os.X_OK):
+            return ffmpeg_exe
+    except Exception:
+        pass
+
+    base_dir = get_base_dir()
+    candidates = [
+        os.path.join(base_dir, "bin", "ffmpeg"),
+        os.path.join(base_dir, "ffmpeg"),
+        os.path.join(os.path.dirname(sys.executable), "bin", "ffmpeg"),
+        os.path.join(os.path.dirname(sys.executable), "ffmpeg")
+    ]
+    for candidate in candidates:
+        if os.path.exists(candidate) and os.access(candidate, os.X_OK):
+            return candidate
+            
+    system_ffmpeg = shutil.which("ffmpeg")
+    if system_ffmpeg:
+        return system_ffmpeg
+        
+    for mac_path in ["/opt/homebrew/bin/ffmpeg", "/usr/local/bin/ffmpeg"]:
+        if os.path.exists(mac_path) and os.access(mac_path, os.X_OK):
+            return mac_path
+            
+    return "ffmpeg"
+
 def load_config(config_path="config/config.yaml"):
-    with open(config_path, "r") as f:
-        return yaml.safe_load(f)
+    base_dir = get_base_dir()
+    full_path = os.path.join(base_dir, config_path) if not os.path.isabs(config_path) else config_path
+    if not os.path.exists(full_path) and os.path.exists(config_path):
+        full_path = config_path
+        
+    with open(full_path, "r") as f:
+        config = yaml.safe_load(f)
+        
+    if 'paths' in config and 'models_dir' in config['paths']:
+        if not os.path.isabs(config['paths']['models_dir']):
+            config['paths']['models_dir'] = os.path.join(base_dir, config['paths']['models_dir'])
+            
+    return config
+
+def get_available_models(model_type=None):
+    """List available model checkpoint filenames for the given architecture."""
+    config = load_config()
+    models_dir = config.get('paths', {}).get('models_dir', 'models')
+    if not os.path.isabs(models_dir):
+        models_dir = os.path.join(get_base_dir(), models_dir)
+        
+    if not os.path.exists(models_dir):
+        return []
+        
+    all_models = sorted([f for f in os.listdir(models_dir) if f.endswith('.pt')])
+    if not model_type:
+        return all_models
+        
+    if "CRNN" in model_type.upper():
+        crnn_models = [f for f in all_models if "crnn" in f.lower() or "rnn" in f.lower()]
+        return crnn_models if crnn_models else all_models
+    else:
+        cnn_models = [f for f in all_models if "crnn" not in f.lower() and ("cnn" in f.lower() or "resnet" in f.lower())]
+        return cnn_models if cnn_models else all_models
+
+def get_default_model(model_type=None):
+    """Return default model checkpoint filename for the given architecture."""
+    models = get_available_models(model_type)
+    if not models:
+        return None
+    if model_type and "CRNN" in model_type.upper():
+        if "crnn_best.pt" in models:
+            return "crnn_best.pt"
+        if "crnn.pt" in models:
+            return "crnn.pt"
+    else:
+        if "resnet18_cnn_best.pt" in models:
+            return "resnet18_cnn_best.pt"
+        if "resnet18_cnn.pt" in models:
+            return "resnet18_cnn.pt"
+    return models[0]
 
 def extract_audio(video_path):
     print(f"Extracting audio from {video_path}...")
     temp_dir = tempfile.gettempdir()
     wav_path = os.path.join(temp_dir, "gradio_extracted_audio.wav")
+    ffmpeg_bin = get_ffmpeg_binary()
     command = [
-        "ffmpeg", "-y", "-i", video_path, "-vn", 
+        ffmpeg_bin, "-y", "-i", video_path, "-vn", 
         "-acodec", "pcm_s16le", "-ar", "44100", "-ac", "1", wav_path
     ]
     subprocess.run(command, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     return wav_path
 
-def run_gradio_inference(audio_path, model_filename):
+def run_gradio_inference(audio_path, model_filename=None, model_type=None):
     if not audio_path:
-        return pd.DataFrame()
+        return pd.DataFrame(columns=["Start Time", "End Time", "Instrument", "Confidence"])
         
     video_exts = ('.mp4', '.mkv', '.mov', '.avi', '.m4v', '.mpeg4', '.webm', '.flv')
     if audio_path.lower().endswith(video_exts):
         audio_path = extract_audio(audio_path)
         
     config = load_config()
-    if not model_filename:
-        model_filename = "resnet18_cnn_best.pt"
-    model_path = os.path.join(config['paths']['models_dir'], model_filename)
     
+    # Resolve model_type: explicit argument > filename inference > default setting
+    if not model_type:
+        if model_filename and ("crnn" in model_filename.lower() or "rnn" in model_filename.lower()):
+            model_type = "CRNN"
+        elif model_filename and ("cnn" in model_filename.lower() or "resnet" in model_filename.lower()):
+            model_type = "CNN"
+        else:
+            model_type = getattr(GUISettings, "DEFAULT_MODEL_TYPE", "CNN")
+            
+    is_crnn = "CRNN" in str(model_type).upper()
+    
+    if not model_filename:
+        model_filename = get_default_model("CRNN" if is_crnn else "CNN")
+        if not model_filename:
+            print("No model checkpoint found.")
+            return pd.DataFrame(columns=["Start Time", "End Time", "Instrument", "Confidence"])
+            
+    models_dir = config.get('paths', {}).get('models_dir', 'models')
+    model_path = os.path.join(models_dir, model_filename)
     if not os.path.exists(model_path):
-        return pd.DataFrame()
+        base_model_path = os.path.join(get_base_dir(), 'models', model_filename)
+        if os.path.exists(base_model_path):
+            model_path = base_model_path
+        else:
+            print(f"Model file not found: {model_path}")
+            return pd.DataFrame(columns=["Start Time", "End Time", "Instrument", "Confidence"])
         
     device = "mps" if torch.backends.mps.is_available() else "cpu"
     
     try:
+        arch_name = "CRNN" if is_crnn else "CNN"
         print("\n" + "="*50)
-        print(f"EVALUATING WITH MODEL: {model_filename}")
+        print(f"EVALUATING WITH {arch_name} MODEL: {model_filename} on {device}")
         print("="*50 + "\n")
         
-        # 1. Load Model
+        # 1. Load Model Checkpoint & Class Labels
         checkpoint = torch.load(model_path, map_location=device, weights_only=False)
-        labels = config['train_labels']
-        state_dict = checkpoint
+        labels = config.get('train_labels', [
+            "sheng", "dizi", "erhu", "pipa", "suona", "guzheng",
+            "yangqin", "percussion", "strings", "woodwind", "brass", "nonmusic"
+        ])
         
-        if isinstance(checkpoint, dict) and 'state_dict' in checkpoint:
-            state_dict = checkpoint['state_dict']
+        if isinstance(checkpoint, dict):
             if 'classes' in checkpoint:
                 labels = checkpoint['classes']
+            state_dict = checkpoint.get('state_dict', checkpoint)
+        else:
+            state_dict = checkpoint
                 
         idx_to_class = {i: cls_name for i, cls_name in enumerate(labels)}
-        model = ResNet18Classifier(num_classes=len(labels)).to(device)
-        model.load_state_dict(state_dict)
-        model.eval()
-        
-        # 2. Run Inference with Post-Processing
-        results = run_sliding_window_inference(
-            audio_path=audio_path,
-            model=model,
-            idx_to_class=idx_to_class,
-            sr=config['audio']['sample_rate'],
-            window_sec=config['audio']['duration_sec'],
-            stride_sec=GUISettings.STRIDE_SEC,
-            device=device,
-            rms_threshold=GUISettings.RMS_THRESHOLD
-        )
-        
-        # 3. Format Output
+
         def format_time(sec):
             h = int(sec // 3600)
             m = int((sec % 3600) // 60)
             s = int(sec % 60)
             return f"{h:02d}:{m:02d}:{s:02d}" if h > 0 else f"{m:02d}:{s:02d}"
 
-        df = pd.DataFrame(results, columns=["Start Time", "End Time", "Instrument"])
-        
-        if not df.empty:
-            df["Start Time"] = df["Start Time"].apply(format_time)
-            df["End Time"] = df["End Time"].apply(format_time)
+        # 2. Run Inference depending on selected architecture
+        if is_crnn:
+            model = ArchivalInstrumentCRNN(
+                num_classes=len(labels),
+                sr=GUISettings.CRNN_SR
+            ).to(device)
+            model.load_state_dict(state_dict)
+            model.eval()
+
+            events = run_streaming_rnn_inference(
+                audio_path=audio_path,
+                model=model,
+                idx_to_class=idx_to_class,
+                sr=GUISettings.CRNN_SR,
+                window_sec=GUISettings.CRNN_WINDOW_SEC,
+                hop_sec=GUISettings.CRNN_HOP_SEC,
+                device=device,
+                rms_threshold=GUISettings.RMS_THRESHOLD,
+                confidence_threshold=GUISettings.CRNN_CONFIDENCE_THRESHOLD,
+                include_nonmusic=GUISettings.CRNN_INCLUDE_NONMUSIC
+            )
+
+            rows = []
+            for ev in events:
+                rows.append({
+                    "Start Time": format_time(ev["start_sec"]),
+                    "End Time": format_time(ev["end_sec"]),
+                    "Instrument": ev["instrument"],
+                    "Confidence": f"{ev['confidence']:.2f}"
+                })
+            return pd.DataFrame(rows, columns=["Start Time", "End Time", "Instrument", "Confidence"])
+
+        else:
+            model = ResNet18Classifier(num_classes=len(labels)).to(device)
+            model.load_state_dict(state_dict)
+            model.eval()
             
-        return df
+            results = run_sliding_window_inference(
+                audio_path=audio_path,
+                model=model,
+                idx_to_class=idx_to_class,
+                sr=config['audio']['sample_rate'],
+                window_sec=config['audio']['duration_sec'],
+                stride_sec=GUISettings.STRIDE_SEC,
+                device=device,
+                rms_threshold=GUISettings.RMS_THRESHOLD
+            )
+            
+            rows = []
+            for start_sec, end_sec, class_str in results:
+                rows.append({
+                    "Start Time": format_time(start_sec),
+                    "End Time": format_time(end_sec),
+                    "Instrument": class_str,
+                    "Confidence": "-"
+                })
+            return pd.DataFrame(rows, columns=["Start Time", "End Time", "Instrument", "Confidence"])
         
     except Exception as e:
         print(f"Error during inference: {str(e)}")
-        return pd.DataFrame()
+        import traceback
+        traceback.print_exc()
+        return pd.DataFrame(columns=["Start Time", "End Time", "Instrument", "Confidence"])
 
 def export_csv(df):
     if df is None or df.empty:
@@ -120,19 +292,25 @@ def export_csv(df):
 
 # Define the Gradio Interface
 def create_app():
-    config = load_config()
-    models_dir = config['paths']['models_dir']
-    available_models = [f for f in os.listdir(models_dir) if f.endswith('.pt')] if os.path.exists(models_dir) else []
-    default_model = "resnet18_cnn_best.pt" if "resnet18_cnn_best.pt" in available_models else (available_models[0] if available_models else None)
+    initial_arch = GUISettings.DEFAULT_MODEL_TYPE
+    initial_models = get_available_models(initial_arch)
+    initial_default = get_default_model(initial_arch)
     
-    with gr.Blocks(title="Soundtrack CNN Classifier") as app:
+    with gr.Blocks(title="ML Soundtrack Classifier (CNN / CRNN)") as app:
         gr.Markdown("# ML Soundtrack Classifier")
+        gr.Markdown("Identify musical instruments and acoustic events in archival film soundtracks using CNN or CRNN inference.")
         
         with gr.Row():
             with gr.Column(scale=1):
+                model_type_radio = gr.Radio(
+                    choices=["CNN", "CRNN"],
+                    value=initial_arch,
+                    label="Model Architecture",
+                    info="Choose between CNN (ResNet-18 baseline) and CRNN (Archival GRU sequence model)"
+                )
                 model_dropdown = gr.Dropdown(
-                    choices=available_models, 
-                    value=default_model,
+                    choices=initial_models, 
+                    value=initial_default,
                     label="Select Model Checkpoint"
                 )
                 audio_input = gr.File(
@@ -149,7 +327,7 @@ def create_app():
                 
         with gr.Row():
             results_table = gr.Dataframe(
-                headers=["Start Time", "End Time", "Instrument"],
+                headers=["Start Time", "End Time", "Instrument", "Confidence"],
                 label="Extracted Acoustic Events",
                 interactive=False,
                 wrap=True,
@@ -163,6 +341,17 @@ def create_app():
                 return extract_audio(file_path)
             return file_path
             
+        def on_model_type_change(selected_type):
+            models = get_available_models(selected_type)
+            default_m = get_default_model(selected_type)
+            return gr.Dropdown(choices=models, value=default_m)
+
+        model_type_radio.change(
+            fn=on_model_type_change,
+            inputs=model_type_radio,
+            outputs=model_dropdown
+        )
+
         audio_input.change(
             fn=load_audio,
             inputs=audio_input,
@@ -171,7 +360,7 @@ def create_app():
                 
         infer_btn.click(
             fn=run_gradio_inference,
-            inputs=[audio_input, model_dropdown],
+            inputs=[audio_input, model_dropdown, model_type_radio],
             outputs=results_table
         )
         
@@ -189,5 +378,6 @@ if __name__ == "__main__":
         share=GUISettings.SHARE_PUBLIC, 
         server_name=GUISettings.SERVER_NAME, 
         server_port=GUISettings.SERVER_PORT, 
-        theme=gr.themes.Soft()
+        theme=gr.themes.Soft(),
+        inbrowser=True
     )
