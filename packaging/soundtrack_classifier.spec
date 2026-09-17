@@ -14,19 +14,26 @@ datas += collect_data_files('safehttpx')
 datas += collect_data_files('groovy')
 datas += collect_data_files('imageio_ffmpeg')
 datas += collect_data_files('librosa')
-datas += collect_data_files('nnaudio')
+datas += collect_data_files('transformers')
+datas += collect_data_files('huggingface_hub')
+datas += collect_data_files('tokenizers')
 
 # Include model weights and configuration
 config_src = os.path.join(repo_root, 'config', 'config.yaml')
-model_src = os.path.join(repo_root, 'models', 'resnet18_cnn_best.pt')
-crnn_src = os.path.join(repo_root, 'models', 'crnn_best.pt')
-
 if os.path.exists(config_src):
     datas.append((config_src, 'config'))
-if os.path.exists(model_src):
-    datas.append((model_src, 'models'))
-if os.path.exists(crnn_src):
-    datas.append((crnn_src, 'models'))
+
+models_dir = os.path.join(repo_root, 'models')
+if os.path.exists(models_dir):
+    for f in os.listdir(models_dir):
+        if f.endswith('.pt'):
+            datas.append((os.path.join(models_dir, f), 'models'))
+
+# Filter out non-existent files, __pycache__, and numba jit caches
+datas = [
+    (src, dst) for (src, dst) in datas
+    if os.path.exists(src) and '__pycache__' not in src and not src.endswith(('.nbc', '.nbi'))
+]
 
 hiddenimports = []
 hiddenimports += collect_submodules('gradio')
@@ -37,17 +44,23 @@ hiddenimports += collect_submodules('starlette')
 hiddenimports += collect_submodules('pydantic')
 hiddenimports += collect_submodules('soundtrack_classifier')
 hiddenimports += collect_submodules('scipy.stats')
+hiddenimports += collect_submodules('transformers')
+hiddenimports += collect_submodules('huggingface_hub')
 hiddenimports += [
     'imageio_ffmpeg',
     'torch',
     'torchaudio',
+    'torch._numpy',
+    'torch._numpy._ufuncs',
     'scipy',
     'scipy.signal',
     'soundfile',
-    'nnaudio',
     'librosa',
     'pandas',
     'yaml',
+    'transformers',
+    'huggingface_hub',
+    'tokenizers',
     'pkg_resources.extern',
 ]
 

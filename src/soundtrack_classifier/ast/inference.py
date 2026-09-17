@@ -22,7 +22,10 @@ def run_ast_inference(
     p_low: Optional[float] = None,
     median_filter_sec: Optional[float] = None,
     min_duration_sec: Optional[float] = None,
-    include_nonmusic: bool = False,
+    entropy_rejection_enabled: Optional[bool] = None,
+    max_normalized_entropy: Optional[float] = None,
+    min_confidence_gate: Optional[float] = None,
+    include_nonmusic: bool = True,
     progress_callback: Optional[Callable[[float, str], None]] = None,
     config: Optional[dict] = None,
 ) -> List[Dict[str, Any]]:
@@ -31,20 +34,24 @@ def run_ast_inference(
 
     Streams continuous audio, extracts dual-resolution embeddings via MERT (24kHz acoustic-music)
     and CLAP (48kHz contrastive audio-text), classifies using the multi-layer probing head,
-    and applies hysteresis thresholding and temporal median smoothing to emit clean acoustic events.
+    and applies entropy/confidence rejection gating, hysteresis thresholding, and temporal
+    median smoothing to emit clean acoustic events.
 
     Args:
         audio_path: Path to input audio or video file.
         model_path: Path to trained probing head checkpoint.
         class_labels: Target class names. Defaults to config train_labels.
         window_sec: Slicing window duration in seconds (default: 4.0s).
-        hop_sec: Stride duration between windows in seconds (default: 0.5s).
+        hop_sec: Stride duration between windows in seconds (default: 1.0s).
         batch_size: GPU batch size for foundation model feature extraction (default: 32).
         device: Execution device ('mps', 'cuda', 'cpu').
-        p_high: Activation probability threshold for hysteresis trigger (default: 0.65).
-        p_low: Deactivation probability threshold for hysteresis release (default: 0.35).
-        median_filter_sec: Median filter window in seconds (default: 1.5s).
-        min_duration_sec: Minimum event duration threshold (default: 1.0s).
+        p_high: Activation probability threshold for hysteresis trigger (default: 0.80).
+        p_low: Deactivation probability threshold for hysteresis release (default: 0.45).
+        median_filter_sec: Median filter window in seconds (default: 2.0s).
+        min_duration_sec: Minimum event duration threshold (default: 1.5s).
+        entropy_rejection_enabled: Reject frames with high entropy / low confidence (default: True).
+        max_normalized_entropy: Maximum normalized Shannon entropy before rejection (default: 0.80).
+        min_confidence_gate: Minimum peak class probability required to pass gate (default: 0.40).
         include_nonmusic: Whether to retain 'nonmusic'/'noise'/'silence' labels in output.
         progress_callback: Optional callback receiving (progress_ratio, status_text).
         config: Optional preloaded configuration dictionary.
@@ -66,12 +73,27 @@ def run_ast_inference(
         ])
 
     window_sec = float(window_sec if window_sec is not None else scoring_cfg.get("window_sec", 4.0))
-    hop_sec = float(hop_sec if hop_sec is not None else scoring_cfg.get("hop_sec", 0.5))
+    hop_sec = float(hop_sec if hop_sec is not None else scoring_cfg.get("hop_sec", 1.0))
     batch_size = int(batch_size if batch_size is not None else scoring_cfg.get("batch_size", 32))
-    p_high = float(p_high if p_high is not None else post_cfg.get("p_high", 0.65))
-    p_low = float(p_low if p_low is not None else post_cfg.get("p_low", 0.35))
-    median_filter_sec = float(median_filter_sec if median_filter_sec is not None else post_cfg.get("median_filter_sec", 1.5))
-    min_duration_sec = float(min_duration_sec if min_duration_sec is not None else post_cfg.get("min_duration_sec", 1.0))
+    p_high = float(p_high if p_high is not None else post_cfg.get("p_high", 0.80))
+    p_low = float(p_low if p_low is not None else post_cfg.get("p_low", 0.45))
+    median_filter_sec = float(median_filter_sec if median_filter_sec is not None else post_cfg.get("median_filter_sec", 2.0))
+    min_duration_sec = float(min_duration_sec if min_duration_sec is not None else post_cfg.get("min_duration_sec", 1.5))
+    entropy_rejection_enabled = bool(
+        entropy_rejection_enabled
+        if entropy_rejection_enabled is not None
+        else post_cfg.get("entropy_rejection_enabled", True)
+    )
+    max_normalized_entropy = float(
+        max_normalized_entropy
+        if max_normalized_entropy is not None
+        else post_cfg.get("max_normalized_entropy", 0.80)
+    )
+    min_confidence_gate = float(
+        min_confidence_gate
+        if min_confidence_gate is not None
+        else post_cfg.get("min_confidence_gate", 0.40)
+    )
 
     if device is None:
         device = "mps" if torch.backends.mps.is_available() else ("cuda" if torch.cuda.is_available() else "cpu")
@@ -112,6 +134,9 @@ def run_ast_inference(
         median_filter_sec=median_filter_sec,
         min_duration_sec=min_duration_sec,
         hop_sec=hop_sec,
+        entropy_rejection_enabled=entropy_rejection_enabled,
+        max_normalized_entropy=max_normalized_entropy,
+        min_confidence_gate=min_confidence_gate,
     )
     raw_events = processor.process(probabilities, timestamps)
 

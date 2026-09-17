@@ -141,6 +141,7 @@ ast:
     hidden_dims:
       - 512
       - 256
+    # TODO: update if more classes are added
     num_classes: 12
     dropouts:
       - 0.4
@@ -165,13 +166,16 @@ ast:
     window_sec: 4.0
     hop_sec: 1.0
     batch_size: 32
-    rms_threshold: 0.008
+    rms_threshold: 0.020
 
   postprocessing:
     p_high: 0.80
     p_low: 0.45
-    median_filter_sec: 2
+    median_filter_sec: 2.0
     min_duration_sec: 1.5
+    entropy_rejection_enabled: true
+    max_normalized_entropy: 0.80
+    min_confidence_gate: 0.40
 
   paths:
     data_dir: "data/train"

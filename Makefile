@@ -1,4 +1,4 @@
-.PHONY: train-rnn resume-rnn rnn-pipeline precompute-features gui package-gui summarize-data debug debug-samples download-archive slice-chmusic slice-film slice-nonmusic splice-movie clean clean-data clean-cache help test-rnn test_rnn delete-silent plot-curves evaluate-models train-cnn resume-cnn test-cnn test_cnn cnn-pipeline train-ast ast-pipeline test-ast
+.PHONY: train-rnn resume-rnn rnn-pipeline precompute-features gui package-gui summarize-data debug debug-samples download-archive slice-chmusic slice-film slice-nonmusic splice-movie clean clean-data clean-cache clean-ast help test-rnn test_rnn delete-silent plot-curves evaluate-models train-cnn resume-cnn test-cnn test_cnn cnn-pipeline train-ast ast-pipeline test-ast pytest-ast
 
 PYTHON ?= $(shell if [ -f "venv/bin/python" ]; then echo "venv/bin/python"; else echo "python3"; fi)
 
@@ -25,9 +25,10 @@ help:
 	@echo "  make slice-chmusic           Partition and slice ChMusic raw data into training set"
 	@echo "  make slice-film              Slice annotated film clips into class folders in data/train/"
 	@echo "  make gui                     Launch the desktop GUI app for drag-and-drop inference"
-	@echo "  make clean                   Clean all cached, precomputed features and Python bytecode"
+	@echo "  make clean                   Clean all caches, AST features, stems, builds, and bytecode"
+	@echo "  make clean-ast               Clean AST cache, features, standardized audio, and stems"
 	@echo "  make clean-data              Clean precomputed feature tensors, AST data, stems, and debug files"
-	@echo "  make clean-cache             Clean __pycache__, .pytest_cache, and test artifacts"
+	@echo "  make clean-cache             Clean __pycache__, .pytest_cache, .ruff_cache, build, dist, and artifacts"
 	@echo ""
 
 summarize-data:
@@ -115,22 +116,27 @@ evaluate-models:
 	PYTHONPATH=src $(PYTHON) scripts/evaluate_models.py
 
 clean-cache:
-	@echo "Cleaning up Python cache and test artifacts..."
+	@echo "Cleaning up Python cache and build artifacts..."
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 	find . -type f -name "*.py[cod]" -delete
-	rm -rf .pytest_cache .coverage htmlcov build dist *.egg-info
-	@echo "Python cache cleaned."
+	find . -type f -name ".DS_Store" -delete
+	rm -rf .pytest_cache .ruff_cache .coverage htmlcov build dist *.egg-info
+	@echo "Python and build cache cleaned."
 
-clean-data:
-	@echo "Cleaning up precomputed feature caches and intermediate data..."
-	rm -rf data/features_cqt_hpss
+clean-ast:
+	@echo "Cleaning up AST cache (standardized audio, segments, features, manifests, stems)..."
 	rm -rf data/ast
 	rm -rf data/stems
+	@echo "AST cache cleaned."
+
+clean-data: clean-ast
+	@echo "Cleaning up precomputed feature caches and intermediate data..."
+	rm -rf data/features_cqt_hpss
 	rm -rf data/debug
-	@echo "Precomputed feature caches cleaned."
+	@echo "Precomputed feature caches and intermediate data cleaned."
 
 clean: clean-cache clean-data
-	@echo "All cached and precomputed data successfully cleaned."
+	@echo "All cached data, AST features, build artifacts, and bytecode successfully cleaned."
 
 delete-silent:
 	@echo "Deleting silent clips..."

@@ -62,27 +62,34 @@ The PyInstaller spec file controls how dependencies are packaged:
   - `gradio` & `gradio_client`: Bundles HTML/JS/CSS frontend templates and simple dropdown components.
   - `safehttpx` & `groovy`: Bundles internal version metadata files required by Gradio's HTTP server.
   - `imageio_ffmpeg`: Bundles the standalone `ffmpeg` executable.
+  - `transformers`, `huggingface_hub`, & `tokenizers`: Bundles tokenizers and model configuration assets.
 * **Dynamic Libraries**:
   - Collects PyTorch (`torch`), torchaudio, and NumPy shared C-extensions.
 * **Model Checkpoints & Configuration**:
-  - Embeds `config/config.yaml` and `models/resnet18_cnn_best.pt` directly into the package bundle.
+  - Embeds `config/config.yaml` and all `.pt` checkpoints (`models/ast_probing_head.pt`, etc.) directly into the package bundle.
 * **Excluded Modules**:
-  - Excludes unused, heavy dependencies such as `matplotlib`, `tkinter`, `wandb`, and `torchvision` to keep bundle size and startup latency minimal.
+  - Excludes unused, heavy dependencies such as `matplotlib`, `tkinter`, and `wandb` to keep bundle size and startup latency minimal.
 
-### 3.2 Pure PyTorch ResNet-18 (`src/soundtrack_classifier/cnn/resnet.py`)
+### 3.2 Automated Environment Compatibility Fixes
 
-* Previously, ResNet-18 was imported from `torchvision.models`. In Python 3.12, importing `torchvision` drags in experimental modules (`torch._dynamo`, `torch._numpy`) which suffer from bytecode compiler incompatibilities when frozen with PyInstaller.
-* We replaced the `torchvision` dependency with a standard, pure PyTorch `ResNet18Classifier` implemented via `torch.nn`.
-* **State Dict Compatibility**: The parameter names and tensor dimensions match torchvision's ResNet-18 **100% bit-for-bit** (`backbone.conv1.weight`, `backbone.layer1.0.conv1.weight`, etc.), so existing trained weights (`resnet18_cnn_best.pt`) load seamlessly with zero weight mismatch.
+During the packaging script (`scripts/package_mac_app.sh`), several compatibility patches are applied automatically for Python 3.12 and frozen app execution:
+1. **`torch._numpy._ufuncs` Global Scope**: Replaces `vars()[name] = ...` with `globals()[name] = ...` to prevent `NameError: name 'name' is not defined` when PyTorch Dynamo and NumPy emulation modules are frozen.
+2. **`gradio.component_meta` Type Generation**: Neutralizes `create_or_modify_pyi()` when running inside a frozen app (`sys.frozen`), preventing `FileNotFoundError` caused by missing raw `.py` source text inside the PyInstaller app bundle.
+3. **`scipy.stats` Docstring Stripping**: Guards dynamic execution cleanup against missing uninitialized symbols.
 
-### 3.3 Bundled Static FFmpeg Discovery
+### 3.3 Foundation Models & Internet Access Note
+
+* The trained Probing Head (`ast_probing_head.pt`, ~3.2 MB) is bundled directly within the app.
+* On the first run, the foundation backbones (**MERT** ~380 MB and **CLAP** ~440 MB) are automatically retrieved and cached locally to `~/.cache/huggingface/`. The user requires an active internet connection on first launch only.
+
+### 3.4 Bundled Static FFmpeg Discovery
 
 In `src/soundtrack_classifier/gui.py`, audio extraction from video files uses `get_ffmpeg_binary()`:
 1. First, checks for the bundled static `imageio-ffmpeg` binary (which has zero dynamic dependencies on Homebrew and runs on any Apple Silicon Mac).
 2. Second, checks for a bundled binary in the application's `bin/` directory.
 3. Third, checks system PATH or standard Homebrew paths (`/opt/homebrew/bin/ffmpeg`).
 
-### 3.4 Auto-Opening Browser on Launch
+### 3.5 Auto-Opening Browser on Launch
 
 In `src/soundtrack_classifier/gui.py`, the Gradio launcher specifies `inbrowser=True`. When the user starts the app, Safari or Chrome automatically launches and navigates to:
 ```
@@ -98,7 +105,7 @@ http://127.0.0.1:7860
    ```
    dist/SoundtrackClassifier-macOS-AppleSilicon.zip
    ```
-   *(File size is ~1.0 GB compressed).*
+   *(File size is ~1.1 GB compressed).*
 2. Upload this file to your Google Drive folder and copy the shareable download link.
 
 ### Step 2: Instructions to Send to the Recipient
@@ -117,13 +124,21 @@ Send the following instructions to your user:
 
 ---
 
-## 5. File Structure Reference
+## 5. Cleaning Caches & Build Artifacts
+
+To clean up build artifacts and caches before or after packaging:
+* `make clean`: Cleans all build artifacts (`build/`, `dist/`), Python bytecode, test caches, and AST feature caches.
+* `make clean-ast`: Purges AST caches (`data/ast/` standardized audio, segments, features) and separated stems (`data/stems/`).
+* `make clean-cache`: Removes `__pycache__`, `.pytest_cache`, `.ruff_cache`, and build directories.
+
+---
+
+## 6. File Structure Reference
 
 | File | Purpose |
 | :--- | :--- |
-| `Makefile` | Contains the `package-gui` target (`make package-gui`). |
-| `scripts/package_mac_app.sh` | Bash script executing the complete assembly, patching, and zip creation. |
+| `Makefile` | Contains `package-gui`, `clean`, `clean-ast`, `clean-cache`, and `clean-data` targets. |
+| `scripts/package_mac_app.sh` | Bash script executing assembly, compatibility patching, PyInstaller bundling, and zip creation. |
 | `packaging/soundtrack_classifier.spec` | PyInstaller spec defining analysis, collected datas, hidden imports, and bundle settings. |
 | `src/soundtrack_classifier/gui.py` | Main Gradio GUI entry point with frozen path handling and auto-browser opening. |
-| `src/soundtrack_classifier/cnn/resnet.py` | Pure PyTorch ResNet-18 architecture with 100% checkpoint state dict compatibility. |
 | `dist/SoundtrackClassifier-macOS-AppleSilicon.zip` | Final distributable zip archive for Google Drive. |

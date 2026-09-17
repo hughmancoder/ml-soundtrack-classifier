@@ -68,8 +68,13 @@ def run_ast_evaluation(
     window_sec = float(window_sec if window_sec is not None else scoring_cfg.get("window_sec", 4.0))
     stride_sec = float(stride_sec if stride_sec is not None else scoring_cfg.get("hop_sec", 1.0))
     batch_size = int(batch_size if batch_size is not None else scoring_cfg.get("batch_size", 32))
-    rms_threshold = float(rms_threshold if rms_threshold is not None else scoring_cfg.get("rms_threshold", 0.008))
+    rms_threshold = float(rms_threshold if rms_threshold is not None else scoring_cfg.get("rms_threshold", 0.020))
     device_str = device_str or feature_cfg.get("device", "mps")
+
+    post_cfg = ast_cfg.get("postprocessing", {})
+    entropy_rejection_enabled = bool(post_cfg.get("entropy_rejection_enabled", True))
+    max_normalized_entropy = float(post_cfg.get("max_normalized_entropy", 0.80))
+    min_confidence_gate = float(post_cfg.get("min_confidence_gate", 0.40))
 
     device = torch.device(device_str if torch.backends.mps.is_available() or torch.cuda.is_available() else "cpu")
     print(f"[*] Running AST Cue Sheet Evaluation on device: {device}")
@@ -154,7 +159,18 @@ def run_ast_evaluation(
         top1_idx = int(sorted_indices[0])
         top3_indices = [int(x) for x in sorted_indices[:3]]
 
-        if is_silent:
+        # Entropy & confidence rejection check
+        is_rejected = False
+        if entropy_rejection_enabled and len(p) > 1:
+            p_sum = float(np.sum(p))
+            p_norm = p / (p_sum if p_sum > 0 else 1.0)
+            ent = -float(np.sum(p_norm * np.log(p_norm + 1e-12)))
+            norm_ent = ent / np.log(len(p))
+            max_conf = float(p[top1_idx])
+            if norm_ent > max_normalized_entropy or max_conf < min_confidence_gate:
+                is_rejected = True
+
+        if is_silent or is_rejected:
             pred_class = "nonmusic"
             pred_prob = 1.0
             top3_classes = ["nonmusic", idx_to_class[top1_idx], idx_to_class[top3_indices[1]]]

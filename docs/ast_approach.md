@@ -38,11 +38,11 @@ The architecture is implemented in an end-to-end operational pipeline (`src/soun
 └──────────────────────────────────┬─────────────────────────────────────┘
                                    ▼
 ┌────────────────────────────────────────────────────────────────────────┐
-│  Phase 6: Continuous Streaming Film Scoring (Window=4.0s, Hop=0.5s)   │
+│  Phase 6: Continuous Streaming Film Scoring (Window=4.0s, Hop=1.0s)   │
 └──────────────────────────────────┬─────────────────────────────────────┘
                                    ▼
 ┌────────────────────────────────────────────────────────────────────────┐
-│  Phase 7: Temporal Smoothing, Hysteresis Binarization & Event Assembly │
+│  Phase 7: Entropy Rejection, Median Smoothing & Hysteresis SED         │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -96,18 +96,24 @@ Linear(256 ➔ 12 Classes) ➔ Softmax / Logits
 - Isolating dialogue prevents actor speech from triggering woodwind or vocal timbre false alarms.
 
 ### Phase 6: Continuous Streaming Film Scoring (`scoring.py`)
-- Slides 4.0-second windows across the full film audio track with a 0.5-second hop (5,684 evaluation windows for a 94-minute film).
+- Slides 4.0-second windows across the full film audio track with a 1.0-second hop.
+- Incorporates an adaptive energy pre-filter (`rms_threshold = 0.020`) to immediately flag optical tape hiss, silence, and low-amplitude background noise as non-music.
 - Resamples each window into 24 kHz (MERT) and 48 kHz (CLAP) streams and extracts embeddings in GPU mini-batches.
 - Yields a time-indexed probability matrix $\mathbf{P} \in [0, 1]^{T \times 12}$.
 
-### Phase 7: Dual-Threshold Hysteresis & Temporal Smoothing (`postprocessing.py`)
-Rather than naive argmax or single-threshold cuts which produce rapid high-frequency event flicker, Phase 7 employs:
-1. **Median Filtering**: Rolling 1.5-second temporal median filter per class channel to suppress transient noise spikes.
-2. **Hysteresis Dual-Threshold Binarization**:
-   - **Trigger Threshold ($P_{\text{high}} = 0.65$)**: Activates an instrument detection when probability exceeds 0.65.
-   - **Release Threshold ($P_{\text{low}} = 0.35$)**: Keeps the event active across sustained phrases until probability drops below 0.35.
-3. **Minimum Duration Pruning**: Events shorter than $1.0\text{s}$ are purged as spurious optical transients.
-4. **Contiguous Event Merging**: Coalesces overlapping temporal intervals into continuous acoustic cue boundaries.
+### Phase 7: Entropy Rejection Gate, Dual-Threshold Hysteresis & Temporal Smoothing (`postprocessing.py`)
+Rather than naive argmax or single-threshold cuts which produce rapid high-frequency event flicker or trigger on optical noise, Phase 7 employs a multi-stage stabilization pipeline:
+1. **Entropy & Confidence Rejection Gate**:
+   - Calculates the normalized Shannon entropy per frame across all $C=12$ classes:
+     $$\tilde{H}(p) = \frac{-\sum_{c=1}^C p_c \ln(p_c + \epsilon)}{\ln(C)} \in [0, 1]$$
+   - Computes maximum class confidence $P_{\max} = \max_c p_c$.
+   - Flags uncertain or diffuse distributions where $\tilde{H}(p) > 0.80$ (high entropy) or $P_{\max} < 0.40$ (low confidence), clamping the frame to $p_{\text{nonmusic}} = 1.0$ and zeroing instrument probabilities. This suppresses spurious activations during dialogue, speech babble, and optical tape hiss before smoothing.
+2. **Median Filtering**: Rolling 2.0-second temporal median filter per class channel to suppress transient noise spikes and bridge brief intra-phrase pauses.
+3. **Hysteresis Dual-Threshold Binarization**:
+   - **Trigger Threshold ($P_{\text{high}} = 0.80$)**: Activates an instrument detection only when confidence exceeds 0.80.
+   - **Release Threshold ($P_{\text{low}} = 0.45$)**: Sustains the event across musical phrases until confidence drops below 0.45.
+4. **Minimum Duration Pruning**: Events shorter than $1.5\text{s}$ are purged as spurious optical transients.
+5. **Contiguous Event Merging & Non-Music Handling**: Coalesces overlapping temporal intervals into continuous acoustic cue boundaries with structured JSON and CSV export (with configurable non-music visibility).
 
 ---
 
@@ -129,7 +135,7 @@ Comprehensive quantitative benchmark against ground truth cue sheet annotations 
 ### Key Strengths of the AST Pipeline
 1. **Strong Musical Discrimination**: Achieves **26.98% Top-1 Music Accuracy**, outperforming the ResNet-50 CNN on musical cues (26.98% vs. 22.85%) and reaching **72.98% Top-3 Music Accuracy** using frozen pre-trained weights and an 800K-parameter probing head.
 2. **Vibrato and Microtonal Invariance**: Pre-trained MERT attention heads maintain high confidence on bowed strings (*erhu*) even through archival pitch wow and flutter.
-3. **Robust Noise Rejection**: Multimodal CLAP representations naturally distinguish dialogue, footsteps, and optical hiss from intentional instrumentation.
+3. **Robust Noise Rejection**: Multimodal CLAP representations and normalized Shannon entropy gating naturally distinguish dialogue, footsteps, and optical hiss from intentional instrumentation.
 
 ---
 
@@ -152,12 +158,16 @@ events = run_ast_inference(
     audio_path="data/raw/Come Drink With Me.mp4",
     model_path="models/ast_probing_head.pt",
     window_sec=4.0,
-    hop_sec=0.5,
-    p_high=0.65,
-    p_low=0.35,
-    median_filter_sec=1.5,
-    min_duration_sec=1.0,
-    device="mps"
+    hop_sec=1.0,
+    p_high=0.80,
+    p_low=0.45,
+    median_filter_sec=2.0,
+    min_duration_sec=1.5,
+    entropy_rejection_enabled=True,
+    max_normalized_entropy=0.80,
+    min_confidence_gate=0.40,
+    include_nonmusic=True,
+    device="mps",
 )
 
 for ev in events:
@@ -169,4 +179,4 @@ Launch via:
 ```bash
 make gui
 ```
-Select **"AST (Foundation Transformer)"** from the model dropdown. The GUI connects directly to `run_ast_inference`, displaying real-time progress callbacks, dynamic time formatting (`MM:SS`), and tabular event exports.
+Select **"AST (Foundation Transformer)"** from the model dropdown. The GUI connects directly to `run_ast_inference`, pre-populated with calibrated defaults ($P_{\text{high}}=0.80$, $P_{\text{low}}=0.45$, $\text{MedFilter}=2.0\text{s}$, $\text{MinDur}=1.5\text{s}$, $\text{Hop}=1.0\text{s}$, $\text{RMS}=0.020$, and non-music events enabled by default). It displays real-time progress callbacks, dynamic time formatting (`MM:SS`), and tabular event exports.

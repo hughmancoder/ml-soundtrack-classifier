@@ -12,19 +12,23 @@ class TemporalPostProcessor:
     Phase 7: Temporal Post-Processing
     Applies temporal filtering and dual-threshold hysteresis to convert raw frame-level
     probability matrices into discrete, stabilized sound event annotations.
-    - 1.5s median filter smoothing
-    - Dual-threshold hysteresis (P_high = 0.65, P_low = 0.35)
-    - Pruning short transient events (< 1.0s)
+    - 2.0s median filter smoothing
+    - Dual-threshold hysteresis (P_high = 0.80, P_low = 0.45)
+    - Pruning short transient events (< 1.5s)
+    - Entropy and confidence rejection gating
     - Structured JSON and CSV export
     """
     def __init__(
         self,
         class_labels: Optional[List[str]] = None,
-        p_high: float = 0.65,
-        p_low: float = 0.35,
-        median_filter_sec: float = 1.5,
-        min_duration_sec: float = 1.0,
-        hop_sec: float = 0.5
+        p_high: float = 0.80,
+        p_low: float = 0.45,
+        median_filter_sec: float = 2.0,
+        min_duration_sec: float = 1.5,
+        hop_sec: float = 1.0,
+        entropy_rejection_enabled: bool = True,
+        max_normalized_entropy: float = 0.80,
+        min_confidence_gate: float = 0.40,
     ):
         self.class_labels = class_labels or [
             "erhu", "pipa", "dizi", "percussion", "strings_western", "sheng",
@@ -35,6 +39,9 @@ class TemporalPostProcessor:
         self.median_filter_sec = median_filter_sec
         self.min_duration_sec = min_duration_sec
         self.hop_sec = hop_sec
+        self.entropy_rejection_enabled = entropy_rejection_enabled
+        self.max_normalized_entropy = max_normalized_entropy
+        self.min_confidence_gate = min_confidence_gate
 
     def apply_median_filter(self, P: np.ndarray) -> np.ndarray:
         """
@@ -119,6 +126,62 @@ class TemporalPostProcessor:
         events.sort(key=lambda x: (x["start_time"], x["end_time"], x["instrument"]))
         return events
 
+    def apply_entropy_confidence_gate(
+        self,
+        P: np.ndarray,
+        max_normalized_entropy: Optional[float] = None,
+        min_confidence_gate: Optional[float] = None,
+    ) -> np.ndarray:
+        """
+        Applies an entropy and confidence rejection gate to raw probability matrix P (shape: [T, C]).
+        Rejects ambiguous, high-entropy or low-confidence distributions (indicative of noise,
+        speech, optical hiss, or absence of distinct musical instrumentation) by clamping
+        nonmusic=1.0 and zeroing instrument probabilities.
+        """
+        if not self.entropy_rejection_enabled or P.size == 0:
+            return P
+
+        max_ent = max_normalized_entropy if max_normalized_entropy is not None else self.max_normalized_entropy
+        min_conf = min_confidence_gate if min_confidence_gate is not None else self.min_confidence_gate
+
+        P_gated = P.copy()
+        num_frames, num_classes = P.shape
+        if num_classes <= 1:
+            return P_gated
+
+        # Find nonmusic index if present
+        nonmusic_idx = None
+        for idx, lbl in enumerate(self.class_labels):
+            if lbl.lower() in ["nonmusic", "noise", "silence"]:
+                nonmusic_idx = idx
+                break
+
+        eps = 1e-12
+        # Normalize rows to ensure valid probability distribution for entropy calculation
+        row_sums = np.sum(P_gated, axis=1, keepdims=True)
+        row_sums = np.where(row_sums == 0, 1.0, row_sums)
+        P_norm = P_gated / row_sums
+
+        # Shannon entropy: - sum(p * ln(p))
+        entropy = -np.sum(P_norm * np.log(P_norm + eps), axis=1)
+        max_entropy = np.log(num_classes)
+        normalized_entropy = entropy / (max_entropy if max_entropy > 0 else 1.0)
+
+        # Maximum confidence per frame
+        max_confidence = np.max(P_gated, axis=1)
+
+        # Rejection mask: high entropy OR weak maximum confidence
+        reject_mask = (normalized_entropy > max_ent) | (max_confidence < min_conf)
+
+        if nonmusic_idx is not None:
+            # Set rejected frames to pure nonmusic
+            P_gated[reject_mask, :] = 0.0
+            P_gated[reject_mask, nonmusic_idx] = 1.0
+        else:
+            P_gated[reject_mask, :] = 0.0
+
+        return P_gated
+
     def process(
         self,
         P: np.ndarray,
@@ -126,17 +189,20 @@ class TemporalPostProcessor:
     ) -> List[Dict[str, Any]]:
         """
         Runs full Phase 7 pipeline on probability matrix P:
-        1. Median filtering
-        2. Hysteresis thresholding
-        3. Duration pruning
+        1. Entropy and confidence rejection gating
+        2. Median filtering
+        3. Dual hysteresis & duration pruning
         """
         if timestamps is None:
             timestamps = np.arange(len(P)) * self.hop_sec
 
-        # 1. Median filtering
-        P_smoothed = self.apply_median_filter(P)
+        # 1. Entropy and confidence rejection gate
+        P_gated = self.apply_entropy_confidence_gate(P)
 
-        # 2. Dual hysteresis & duration pruning
+        # 2. Median filtering
+        P_smoothed = self.apply_median_filter(P_gated)
+
+        # 3. Dual hysteresis & duration pruning
         events = self.apply_hysteresis(P_smoothed, timestamps)
         return events
 

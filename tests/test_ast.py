@@ -199,6 +199,40 @@ def test_temporal_postprocessor(tmp_path):
     assert csv_path.exists()
 
 
+def test_entropy_confidence_gate():
+    labels = ["erhu", "pipa", "dizi", "nonmusic"]
+    processor = TemporalPostProcessor(
+        class_labels=labels,
+        entropy_rejection_enabled=True,
+        max_normalized_entropy=0.80,
+        min_confidence_gate=0.40,
+    )
+
+    # 3 frames:
+    # Frame 0: Ambiguous/uniform noise across classes (high entropy)
+    # Frame 1: Low confidence activation (all < 0.40)
+    # Frame 2: Confident musical instrument (erhu=0.85, low entropy)
+    P = np.array([
+        [0.25, 0.25, 0.25, 0.25],
+        [0.30, 0.20, 0.10, 0.20],
+        [0.85, 0.05, 0.05, 0.05],
+    ], dtype=np.float32)
+
+    P_gated = processor.apply_entropy_confidence_gate(P)
+
+    # Frame 0: High entropy -> clamped to nonmusic (index 3)
+    assert P_gated[0, 3] == 1.0
+    assert P_gated[0, 0] == 0.0
+
+    # Frame 1: Max confidence 0.30 < 0.40 -> clamped to nonmusic
+    assert P_gated[1, 3] == 1.0
+    assert P_gated[1, 0] == 0.0
+
+    # Frame 2: Erhu 0.85 passes gate without change
+    assert P_gated[2, 0] == pytest.approx(0.85)
+    assert P_gated[2, 3] == pytest.approx(0.05)
+
+
 def test_config_ast_section():
     config = load_config("config/config.yaml")
     assert "ast" in config
