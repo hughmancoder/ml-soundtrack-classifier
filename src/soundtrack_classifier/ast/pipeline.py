@@ -1,18 +1,18 @@
 import os
-import argparse
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any
-import yaml
+from typing import Any, Dict, List, Optional, Tuple
+
 import numpy as np
 import torch
+import yaml
 
-from soundtrack_classifier.ast.standardization import AudioStandardizer
-from soundtrack_classifier.ast.segment_augment import SegmentAugmentor
 from soundtrack_classifier.ast.feature_extraction import FrozenFeatureExtractor
-from soundtrack_classifier.ast.probing_head import ProbingHeadTrainer, ProbingHead
-from soundtrack_classifier.ast.separation import FilmStemSeparator
-from soundtrack_classifier.ast.scoring import ContinuousFilmScorer
 from soundtrack_classifier.ast.postprocessing import TemporalPostProcessor
+from soundtrack_classifier.ast.probing_head import ProbingHead, ProbingHeadTrainer
+from soundtrack_classifier.ast.scoring import ContinuousFilmScorer
+from soundtrack_classifier.ast.segment_augment import SegmentAugmentor
+from soundtrack_classifier.ast.separation import FilmStemSeparator
+from soundtrack_classifier.ast.standardization import AudioStandardizer
 
 
 def load_config(config_path: str = "config/config.yaml") -> Dict[str, Any]:
@@ -128,6 +128,10 @@ class OperationalPipeline:
         """Phase 5: Film Stem Separation"""
         sep_cfg = self.ast_cfg.get("separation", {})
         in_path = film_audio_path or sep_cfg.get("film_audio_path", "data/test/come-drink-with-me/Come Drink With Me.wav")
+        if not sep_cfg.get("enabled", True):
+            print(f"[*] Phase 5 (Stem Separation) disabled in config. Scoring composite audio: {in_path}")
+            return in_path
+
         out_dir = sep_cfg.get("output_dir", "data/stems")
 
         separator = FilmStemSeparator(

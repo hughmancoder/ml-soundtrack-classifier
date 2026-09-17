@@ -1,13 +1,12 @@
-import os
 import gc
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union, Any
+from typing import Any, Dict, List, Optional, Tuple
+
 import numpy as np
 import torch
 import torch.nn.functional as F
-from torch.utils.data import DataLoader, Dataset
-from transformers import AutoModel, AutoProcessor, ClapModel
 from tqdm import tqdm
+from transformers import AutoModel, AutoProcessor, ClapModel
 
 
 class FrozenFeatureExtractor:

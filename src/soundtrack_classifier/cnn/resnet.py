@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from torchvision.models import resnet50, ResNet50_Weights
+from torchvision.models import ResNet50_Weights, resnet50
 
 
 class BasicBlock(nn.Module):
@@ -38,12 +38,12 @@ class ResNetBackbone(nn.Module):
         self.bn1 = nn.BatchNorm2d(64)
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-        
+
         self.layer1 = self._make_layer(block, 64, layers[0])
         self.layer2 = self._make_layer(block, 128, layers[1], stride=2)
         self.layer3 = self._make_layer(block, 256, layers[2], stride=2)
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
-        
+
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(512 * block.expansion, num_classes)
 
@@ -98,14 +98,14 @@ class ResNet50Classifier(nn.Module):
     def __init__(self, num_classes: int = 12, pretrained: bool = True):
         super().__init__()
         self.num_classes = num_classes
-        
+
         if pretrained:
             weights = ResNet50_Weights.DEFAULT
         else:
             weights = None
-            
+
         self.backbone = resnet50(weights=weights)
-        
+
         # Replace the final classification head
         num_ftrs = self.backbone.fc.in_features
         self.backbone.fc = nn.Linear(num_ftrs, num_classes)
@@ -117,11 +117,11 @@ class ResNet50Classifier(nn.Module):
         Returns:
             Logits of shape [batch_size, num_classes]
         """
-        # ResNet-50 expects 3-channel input (RGB). 
+        # ResNet-50 expects 3-channel input (RGB).
         # We duplicate the 1-channel CQT spectrogram across 3 channels
         # to effectively utilize pre-trained ImageNet feature weights.
         if x.shape[1] == 1:
             x = x.repeat(1, 3, 1, 1)
-            
+
         return self.backbone(x)
 

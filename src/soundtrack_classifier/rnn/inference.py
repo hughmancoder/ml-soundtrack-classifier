@@ -1,5 +1,5 @@
 import os
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Union
 
 import librosa
 import numpy as np
@@ -114,7 +114,7 @@ def run_streaming_rnn_inference(
 
     slice_starts = list(range(0, total_samples - window_samples + 1, hop_samples))
     print(f"[Streaming RNN Inference] Streaming {len(slice_starts)} windows ({window_sec}s with {hop_sec}s hop, batch_size={batch_size})...")
-    
+
     hann_cached = None
 
     # Stream through audio in parallel batches

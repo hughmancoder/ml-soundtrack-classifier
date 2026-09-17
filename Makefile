@@ -32,11 +32,11 @@ help:
 
 summarize-data:
 	@echo "Summarizing training data distribution..."
-	PYTHONPATH=src $(PYTHON) scripts/summarize_data.py
+	PYTHONPATH=src $(PYTHON) scripts/data/summarize_data.py
 
 debug:
 	@echo "Generating clean vs degraded samples in data/debug/..."
-	PYTHONPATH=src $(PYTHON) scripts/debug_samples.py --output-dir data/debug --num-samples 3
+	PYTHONPATH=src $(PYTHON) scripts/data/debug_samples.py --output-dir data/debug --num-samples 3
 
 debug-samples: debug
 
@@ -97,7 +97,7 @@ rnn-pipeline:
 
 gui:
 	@echo "Launching Desktop GUI application..."
-	PYTHONPATH=src $(PYTHON) src/soundtrack_classifier/gui.py
+	PYTHONPATH=src $(PYTHON) -m soundtrack_classifier.gui
 
 package-gui:
 	@echo "Packaging standalone macOS GUI application and zip for distribution..."
@@ -190,6 +190,14 @@ ast-pipeline:
 	fi
 
 test-ast:
+	@echo "Evaluating AST model against cue sheet annotations..."
+	PYTHONPATH=src $(PYTHON) src/soundtrack_classifier/ast/test_ast.py \
+		--audio "$(audio)" \
+		--model "$(ast_model)" \
+		--cuesheet "$(cuesheet)" \
+		--mapping "$(mapping)" \
+		--output "$(ast_eval_output)"
+
+pytest-ast:
 	@echo "Running AST test suite..."
 	PYTHONPATH=src venv/bin/pytest tests/test_ast.py -v
-

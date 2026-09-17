@@ -1,8 +1,5 @@
-import os
 import subprocess
 from pathlib import Path
-from typing import Dict, Optional, Tuple, Any
-import soundfile as sf
 
 
 class FilmStemSeparator:
@@ -54,7 +51,7 @@ class FilmStemSeparator:
 
         try:
             subprocess.run(cmd, check=True)
-        except (subprocess.CalledProcessError, FileNotFoundError) as e:
+        except (subprocess.CalledProcessError, FileNotFoundError):
             # Check if Demucs python module can be run directly
             cmd_py = ["python", "-m", "demucs", "-n", self.model_name, "-o", str(self.output_dir), str(audio_path)]
             subprocess.run(cmd_py, check=True)

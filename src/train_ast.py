@@ -7,13 +7,13 @@ Usage:
     PYTHONPATH=src venv/bin/python src/train_ast.py
     PYTHONPATH=src venv/bin/python src/train_ast.py --full-prep  # Runs standardization & feature extraction first
 """
-import os
 import argparse
 from pathlib import Path
-import torch
-import numpy as np
 
-from soundtrack_classifier.ast.pipeline import OperationalPipeline, load_config
+import numpy as np
+import torch
+
+from soundtrack_classifier.ast.pipeline import OperationalPipeline
 from soundtrack_classifier.ast.probing_head import ProbingHeadTrainer
 
 
@@ -48,9 +48,9 @@ def main():
         raise FileNotFoundError(f"Feature matrices not found in {feat_dir}. Run with --full-prep to generate them.")
 
     print(f"Loading precomputed feature matrices from {feat_dir}...")
-    X = torch.load(str(x_path)).numpy()
-    Y = torch.load(str(y_path)).numpy()
-    groups = torch.load(str(g_path)) if g_path.exists() else np.arange(len(X))
+    X = torch.load(str(x_path), weights_only=False).numpy()
+    Y = torch.load(str(y_path), weights_only=False).numpy()
+    groups = torch.load(str(g_path), weights_only=False) if g_path.exists() else np.arange(len(X))
 
     ckpt_path = args.checkpoint or paths_cfg.get("model_checkpoint", "models/ast_probing_head.pt")
 

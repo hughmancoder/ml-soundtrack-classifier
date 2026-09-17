@@ -1,12 +1,11 @@
-import os
 import glob
+import os
 import random
-from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple
 
+import librosa
 import numpy as np
 import soundfile as sf
-import librosa
 import torch
 import yaml
 from torch.utils.data import Dataset
@@ -28,17 +27,17 @@ def load_config(config_path: str = "config/config.yaml") -> dict:
 class ArchivalSoundtrackRNNDataset(Dataset):
     """
     Dataset loader for the Archival Instrument CRNN.
-    
+
     Key Design Principles:
     - 6-to-8 Second Operational Window:
-        Dynamically extracts random 6-to-8s crops from continuous scene recordings 
-        or pre-segmented clips. This captures complete expressive gestures (attacks, sustained 
+        Dynamically extracts random 6-to-8s crops from continuous scene recordings
+        or pre-segmented clips. This captures complete expressive gestures (attacks, sustained
         vibrato, slides, decays) and provides sufficient temporal support for stable CQT filters.
     - Noise Contrast Learning:
-        Exposes the recurrent model to longer temporal baselines to distinguish steady-state 
+        Exposes the recurrent model to longer temporal baselines to distinguish steady-state
         optical noise from transient musical phrasing.
     - On-The-Fly Degradation:
-        Applies synthetic 1960s optical film degradation (surface hiss, crackle, bandlimiting) 
+        Applies synthetic 1960s optical film degradation (surface hiss, crackle, bandlimiting)
         during training.
     """
     def __init__(
@@ -119,13 +118,15 @@ class ArchivalSoundtrackRNNDataset(Dataset):
             # If cache is missing or empty, automatically run offline precomputation
             if not cache_has_files:
                 print(f"[*] precompute_features=True but cache '{self.features_dir}' is missing or empty.")
-                print(f"[*] Running precompute_features to cache 2-channel CQT+HPSS tensors...")
+                print("[*] Running precompute_features to cache 2-channel CQT+HPSS tensors...")
                 import sys
                 from pathlib import Path
                 root_dir = str(Path(__file__).resolve().parent.parent.parent.parent)
                 if root_dir not in sys.path:
                     sys.path.insert(0, root_dir)
-                from scripts.precompute_cqt_hpss import precompute_features as run_precompute
+                from scripts.precompute_cqt_hpss import (
+                    precompute_features as run_precompute,
+                )
                 run_precompute(data_dir=self.data_dir, out_dir=self.features_dir, sr=self.sr)
 
             for class_name, idx in self.class_to_idx.items():
@@ -146,7 +147,7 @@ class ArchivalSoundtrackRNNDataset(Dataset):
                 class_dir = os.path.join(self.data_dir, class_name)
                 if os.path.isdir(class_dir):
                     files = sorted(
-                        glob.glob(os.path.join(class_dir, "*.wav")) + 
+                        glob.glob(os.path.join(class_dir, "*.wav")) +
                         glob.glob(os.path.join(class_dir, "*.mp3")) +
                         glob.glob(os.path.join(class_dir, "*.flac"))
                     )
@@ -161,9 +162,9 @@ class ArchivalSoundtrackRNNDataset(Dataset):
 
     def _pad_short_audio(self, audio: np.ndarray) -> np.ndarray:
         """
-        Inserts a short event (e.g., 1–3s percussion strike) at a random position 
+        Inserts a short event (e.g., 1–3s percussion strike) at a random position
         within the 8s silent canvas instead of tiling.
-        
+
         Avoids the 'Tiling Trap' where short percussion strikes are looped 5-6x,
         which erroneously trains the recurrent layer to learn rapid periodic tempo loops
         (120-180 BPM) instead of the isolated attack envelope and timbral characteristics.
@@ -227,7 +228,7 @@ class ArchivalSoundtrackRNNDataset(Dataset):
                     start_frame = random.randint(0, max_start)
                 else:
                     start_frame = max(0, (file_frames - target_file_frames) // 2)
-                
+
                 audio, _ = sf.read(path, start=start_frame, stop=start_frame + target_file_frames, dtype="float32", always_2d=False)
             else:
                 audio, _ = sf.read(path, dtype="float32", always_2d=False)

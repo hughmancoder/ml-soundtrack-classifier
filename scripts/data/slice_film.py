@@ -11,7 +11,7 @@ src_dir = str(repo_root / "src")
 if src_dir not in sys.path:
     sys.path.insert(0, src_dir)
 
-from soundtrack_classifier.ingestion.audio_utils import extract_audio_from_video
+from soundtrack_classifier.audio_utils import extract_audio_from_video
 
 
 def hhmmss_to_seconds(t_str: str) -> float:

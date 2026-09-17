@@ -1,12 +1,12 @@
-import os
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union, Any
+from typing import Dict, List, Optional, Tuple
+
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader, TensorDataset
+from sklearn.metrics import f1_score
 from sklearn.model_selection import GroupKFold
-from sklearn.metrics import f1_score, average_precision_score
+from torch.utils.data import DataLoader, TensorDataset
 
 
 class ProbingHead(nn.Module):

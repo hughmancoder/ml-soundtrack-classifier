@@ -1,7 +1,21 @@
 import os
+import shutil
+import subprocess
 import sys
-import yaml
-import torch
+import tempfile
+
+# Prevent Python from shadowing standard library 'ast' module with soundtrack_classifier/ast
+_current_dir = os.path.dirname(os.path.abspath(__file__))
+if sys.path and os.path.abspath(sys.path[0]) == _current_dir:
+    sys.path.pop(0)
+
+_src_dir = os.path.abspath(os.path.join(_current_dir, '..'))
+if _src_dir not in sys.path:
+    sys.path.insert(0, _src_dir)
+
+import torch  # noqa: E402
+import yaml  # noqa: E402
+
 try:
     import gradio.component_meta
     gradio.component_meta.create_or_modify_pyi = lambda *args, **kwargs: None
@@ -9,8 +23,9 @@ try:
     gradio.blocks_events.create_or_modify_pyi = lambda *args, **kwargs: None
 except Exception:
     pass
-import gradio as gr
-import pandas as pd
+import gradio as gr  # noqa: E402
+import pandas as pd  # noqa: E402
+
 
 def get_base_dir():
     """Returns the base directory of the project, handling PyInstaller frozen execution."""
@@ -23,14 +38,14 @@ def load_config(config_path="config/config.yaml"):
     full_path = os.path.join(base_dir, config_path) if not os.path.isabs(config_path) else config_path
     if not os.path.exists(full_path) and os.path.exists(config_path):
         full_path = config_path
-        
+
     with open(full_path, "r", encoding="utf-8") as f:
         config = yaml.safe_load(f) or {}
-        
+
     if 'paths' in config and 'models_dir' in config['paths']:
         if not os.path.isabs(config['paths']['models_dir']):
             config['paths']['models_dir'] = os.path.join(base_dir, config['paths']['models_dir'])
-            
+
     return config
 
 class GUISettings:
@@ -43,15 +58,16 @@ class GUISettings:
     _ast_cfg = _cfg.get("ast", {})
     _ast_scoring = _ast_cfg.get("scoring", {})
     _ast_post = _ast_cfg.get("postprocessing", {})
+    _ast_sep = _ast_cfg.get("separation", {})
 
     SERVER_PORT = 7860
     SERVER_NAME = "127.0.0.1"
     SHARE_PUBLIC = False
-    
+
     # Model Architectures
     MODEL_TYPES = ["AST (Foundation Transformer)", "Archival CRNN", "CNN (ResNet-50)"]
     DEFAULT_MODEL_TYPE = "AST (Foundation Transformer)"
-    
+
     # Inference Tuning (CRNN) - Dynamically loaded from config.yaml
     CRNN_WINDOW_SEC = float(_crnn_audio.get("window_sec", 10.0))
     CRNN_HOP_SEC = float(_crnn_audio.get("hop_sec", 4.0))
@@ -61,7 +77,7 @@ class GUISettings:
     CRNN_CONFIDENCE_THRESHOLD = float(_crnn_inf.get("confidence_threshold", 0.35))
     CRNN_MIN_EVENT_SEC = float(_crnn_inf.get("min_event_sec", 1.0))
     CRNN_INCLUDE_NONMUSIC = bool(_crnn_inf.get("include_nonmusic", False))
-    
+
     # Inference Tuning (AST)
     AST_WINDOW_SEC = float(_ast_scoring.get("window_sec", 4.0))
     AST_HOP_SEC = float(_ast_scoring.get("hop_sec", 0.5))
@@ -70,28 +86,27 @@ class GUISettings:
     AST_P_LOW = float(_ast_post.get("p_low", 0.35))
     AST_MEDIAN_FILTER_SEC = float(_ast_post.get("median_filter_sec", 1.5))
     AST_MIN_DURATION_SEC = float(_ast_post.get("min_duration_sec", 1.0))
+    AST_SEPARATION_ENABLED = bool(_ast_sep.get("enabled", False))
 
     # UI Layout
     TABLE_ROW_COUNT = 50
 
-# Add src to python path so we can import our pipeline modules
-src_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-if src_dir not in sys.path:
-    sys.path.insert(0, src_dir)
 
 # Model Imports
-from soundtrack_classifier.rnn.rnn import ArchivalInstrumentCRNN
-from soundtrack_classifier.rnn.inference import run_streaming_rnn_inference
-from soundtrack_classifier.ast.scoring import ContinuousFilmScorer
-from soundtrack_classifier.ast.postprocessing import TemporalPostProcessor
-from soundtrack_classifier.ast.probing_head import ProbingHead
-from soundtrack_classifier.ast.separation import FilmStemSeparator
-from soundtrack_classifier.cnn.resnet import ResNet50Classifier, ResNet18Classifier
-from soundtrack_classifier.cnn.inference import run_sliding_window_inference
+from soundtrack_classifier.ast.inference import run_ast_inference  # noqa: E402
+from soundtrack_classifier.ast.separation import FilmStemSeparator  # noqa: E402
+from soundtrack_classifier.cnn.inference import (  # noqa: E402
+    run_sliding_window_inference,
+)
+from soundtrack_classifier.cnn.resnet import (  # noqa: E402
+    ResNet18Classifier,
+    ResNet50Classifier,
+)
+from soundtrack_classifier.rnn.inference import (  # noqa: E402
+    run_streaming_rnn_inference,
+)
+from soundtrack_classifier.rnn.rnn import ArchivalInstrumentCRNN  # noqa: E402
 
-import shutil
-import subprocess
-import tempfile
 
 def get_ffmpeg_binary():
     """Locate ffmpeg binary in bundled package, imageio_ffmpeg, system path, or homebrew paths."""
@@ -114,15 +129,15 @@ def get_ffmpeg_binary():
     for candidate in candidates:
         if os.path.exists(candidate) and os.access(candidate, os.X_OK):
             return candidate
-            
+
     system_ffmpeg = shutil.which("ffmpeg")
     if system_ffmpeg:
         return system_ffmpeg
-        
+
     for mac_path in ["/opt/homebrew/bin/ffmpeg", "/usr/local/bin/ffmpeg"]:
         if os.path.exists(mac_path) and os.access(mac_path, os.X_OK):
             return mac_path
-            
+
     return "ffmpeg"
 
 def get_available_models(model_type="AST (Foundation Transformer)"):
@@ -131,12 +146,12 @@ def get_available_models(model_type="AST (Foundation Transformer)"):
     models_dir = config.get('paths', {}).get('models_dir', 'models')
     if not os.path.isabs(models_dir):
         models_dir = os.path.join(get_base_dir(), models_dir)
-        
+
     if not os.path.exists(models_dir):
         return []
-        
+
     all_models = sorted([f for f in os.listdir(models_dir) if f.endswith('.pt')])
-    
+
     if "AST" in model_type.upper() or "TRANSFORMER" in model_type.upper():
         ast_models = [f for f in all_models if "ast" in f.lower() or "probing" in f.lower()]
         return ast_models if ast_models else ["ast_probing_head.pt"]
@@ -177,7 +192,7 @@ def extract_audio(video_path):
     wav_path = os.path.join(temp_dir, "gradio_extracted_audio.wav")
     ffmpeg_bin = get_ffmpeg_binary()
     command = [
-        ffmpeg_bin, "-y", "-i", video_path, "-vn", 
+        ffmpeg_bin, "-y", "-i", video_path, "-vn",
         "-acodec", "pcm_s16le", "-ar", "44100", "-ac", "1", wav_path
     ]
     subprocess.run(command, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -201,26 +216,26 @@ def run_gradio_inference(
     empty_df = pd.DataFrame(columns=cols)
     if not audio_path:
         return empty_df, "### ℹ️ Please upload an audio or video file to run inference."
-        
+
     video_exts = ('.mp4', '.mkv', '.mov', '.avi', '.m4v', '.mpeg4', '.webm', '.flv')
     if audio_path.lower().endswith(video_exts):
         progress(0.02, desc="Extracting audio stream from video container...")
         audio_path = extract_audio(audio_path)
-        
+
     config = load_config()
-    
+
     if not model_filename:
         model_filename = get_default_model(model_type)
-            
+
     models_dir = config.get('paths', {}).get('models_dir', 'models')
     model_path = os.path.join(models_dir, model_filename) if model_filename else ""
     if not os.path.exists(model_path):
         base_model_path = os.path.join(get_base_dir(), 'models', model_filename) if model_filename else ""
         if os.path.exists(base_model_path):
             model_path = base_model_path
-        
+
     device = "mps" if torch.backends.mps.is_available() else "cpu"
-    
+
     def format_time(sec):
         h = int(sec // 3600)
         m = int((sec % 3600) // 60)
@@ -254,51 +269,30 @@ def run_gradio_inference(
             print(f"Parameters: P_high={p_high}, P_low={p_low}, MedFilter={median_filter_sec}s, MinDur={min_duration}s, Window={window_sec}s, Hop={hop_sec}s")
             print("="*50 + "\n")
 
-            progress(0.20, desc="Phase 6: Streaming windows & extracting MERT+CLAP embeddings...")
-            scorer = ContinuousFilmScorer(
-                probing_head_checkpoint=model_path if (model_path and os.path.exists(model_path)) else "models/ast_probing_head.pt",
+            events = run_ast_inference(
+                audio_path=audio_path,
+                model_path=model_path,
                 window_sec=float(window_sec),
                 hop_sec=float(hop_sec),
-                batch_size=int(config.get("ast", {}).get("scoring", {}).get("batch_size", 32)),
-                device=device
-            )
-
-            # If checkpoint not found on disk yet, initialize probing head for UI demonstration
-            if not (model_path and os.path.exists(model_path)):
-                print("Notice: AST checkpoint not found on disk yet. Running with initialized ProbingHead architecture.")
-                scorer.probing_head = ProbingHead().to(device)
-                scorer.probing_head.eval()
-
-            P, timestamps = scorer.score_audio_file(audio_path, output_probabilities_path=None)
-
-            progress(0.80, desc="Phase 7: Temporal smoothing & hysteresis post-processing...")
-            labels = config.get("train_labels", [
-                "erhu", "pipa", "dizi", "percussion", "strings_western", "sheng",
-                "suona", "guzheng", "yangqin", "woodwind", "brass", "nonmusic"
-            ])
-            processor = TemporalPostProcessor(
-                class_labels=labels,
+                device=device,
                 p_high=float(p_high),
                 p_low=float(p_low),
                 median_filter_sec=float(median_filter_sec),
                 min_duration_sec=float(min_duration),
-                hop_sec=float(hop_sec)
+                include_nonmusic=include_nonmusic,
+                progress_callback=lambda ratio, msg: progress(ratio, desc=msg),
+                config=config,
             )
-            events = processor.process(P, timestamps)
 
             for ev in events:
-                inst_name = ev["instrument"]
-                if not include_nonmusic and inst_name.lower() in ["nonmusic", "noise", "silence"]:
-                    continue
-                dur = ev["end_time"] - ev["start_time"]
                 conf_val = ev["confidence"]
                 conf_str = f"{conf_val * 100:.1f}%" if conf_val <= 1.0 else f"{conf_val:.2f}"
                 rows.append({
                     "Start Time": format_time(ev["start_time"]),
                     "End Time": format_time(ev["end_time"]),
-                    "Duration": f"{dur:.1f}s",
-                    "Instrument": inst_name,
-                    "Confidence": conf_str
+                    "Duration": f"{ev['duration']:.1f}s",
+                    "Instrument": ev["instrument"],
+                    "Confidence": conf_str,
                 })
 
         # =====================================================================
@@ -309,7 +303,7 @@ def run_gradio_inference(
             print(f"EVALUATING WITH CRNN MODEL: {model_filename} on {device}")
             print(f"Parameters: ConfThreshold={p_high}, Window={window_sec}s, Hop={hop_sec}s, MinEvent={min_duration}s")
             print("="*50 + "\n")
-            
+
             if not os.path.exists(model_path):
                 print(f"CRNN model file not found: {model_path}")
                 return empty_df, f"### ⚠️ CRNN model file `{model_filename}` not found on disk."
@@ -319,14 +313,14 @@ def run_gradio_inference(
                 "sheng", "dizi", "erhu", "pipa", "suona", "guzheng",
                 "yangqin", "percussion", "strings", "woodwind", "brass", "nonmusic"
             ])
-            
+
             if isinstance(checkpoint, dict):
                 if 'classes' in checkpoint:
                     labels = checkpoint['classes']
                 state_dict = checkpoint.get('state_dict', checkpoint)
             else:
                 state_dict = checkpoint
-                    
+
             idx_to_class = {i: cls_name for i, cls_name in enumerate(labels)}
 
             crnn_cfg = config.get("crnn", {})
@@ -437,7 +431,7 @@ def run_gradio_inference(
 
         df = pd.DataFrame(rows, columns=cols)
         progress(1.0, desc="Done!")
-        
+
         if df.empty:
             summary_md = f"### ℹ️ No acoustic events detected above confidence threshold ({p_high:.2f}).\n*Try lowering the **Detection Threshold** in the Options panel below.*"
         else:
@@ -465,11 +459,11 @@ def create_app():
     initial_arch = GUISettings.DEFAULT_MODEL_TYPE
     initial_models = get_available_models(initial_arch)
     initial_default = get_default_model(initial_arch)
-    
+
     with gr.Blocks(title="ML Soundtrack Classifier") as app:
         gr.Markdown("# 🎬 ML Soundtrack Classifier: AST, CRNN & CNN")
         gr.Markdown("Identify musical instruments and acoustic events in archival film soundtracks using **Audio Spectrogram Transformers (MERT + CLAP Foundation Probing)**, **Archival CRNN (HPSS + CQT)**, or **CNN Baselines**.")
-        
+
         with gr.Row():
             with gr.Column(scale=1):
                 model_type_radio = gr.Radio(
@@ -479,19 +473,19 @@ def create_app():
                     info="Choose between AST (Foundation Transformers), Archival CRNN, or CNN Baseline"
                 )
                 model_dropdown = gr.Dropdown(
-                    choices=initial_models, 
+                    choices=initial_models,
                     value=initial_default,
                     label=f"Select {initial_arch} Checkpoint"
                 )
                 audio_input = gr.File(
-                    file_types=["audio", "video", ".wav", ".mp3", ".flac", ".mp4", ".m4v", ".mov"], 
+                    file_types=["audio", "video", ".wav", ".mp3", ".flac", ".mp4", ".m4v", ".mov"],
                     label="Upload Audio or Video File (.wav, .mp3, .mp4, .m4v, etc.)"
                 )
                 audio_player = gr.Audio(label="Audio Playback Preview", interactive=False)
-                
+
                 with gr.Accordion("⚙️ Inference & Pipeline Options", open=False):
                     isolate_stems_cb = gr.Checkbox(
-                        value=False,
+                        value=GUISettings.AST_SEPARATION_ENABLED,
                         label="Isolate Music Stem with HTDemucs (Phase 5 Stem Separation)",
                         info="Separates dialogue (a_DX) and Foley/SFX (a_FX) from soundtrack music (a_MX) before classification. Recommended for full cinematic film soundtracks."
                     )
@@ -537,9 +531,9 @@ def create_app():
                 with gr.Row():
                     infer_btn = gr.Button("🚀 Run Inference", variant="primary", scale=2)
                     export_btn = gr.Button("💾 Save Table to CSV", scale=1)
-                    
+
                 csv_download = gr.File(label="⬇ CSV Download", interactive=False, height=70)
-                
+
             with gr.Column(scale=1):
                 status_markdown = gr.Markdown("### 🎵 Ready for Inference\nUpload an audio/video file and click **Run Inference**.")
                 results_table = gr.Dataframe(
@@ -549,18 +543,19 @@ def create_app():
                     wrap=True,
                     row_count=(GUISettings.TABLE_ROW_COUNT, "dynamic")
                 )
-            
+
         def load_audio(file_path):
-            if not file_path: return None
+            if not file_path:
+                return None
             video_exts = ('.mp4', '.mkv', '.mov', '.avi', '.m4v', '.mpeg4', '.webm', '.flv')
             if file_path.lower().endswith(video_exts):
                 return extract_audio(file_path)
             return file_path
-            
+
         def on_model_type_change(selected_type):
             models = get_available_models(selected_type)
             default_m = get_default_model(selected_type)
-            
+
             if "AST" in selected_type.upper():
                 return (
                     gr.Dropdown(choices=models, value=default_m, label=f"Select {selected_type} Checkpoint"),
@@ -611,7 +606,7 @@ def create_app():
             inputs=audio_input,
             outputs=audio_player
         )
-                
+
         infer_btn.click(
             fn=run_gradio_inference,
             inputs=[
@@ -629,21 +624,21 @@ def create_app():
             ],
             outputs=[results_table, status_markdown]
         )
-        
+
         export_btn.click(
             fn=export_csv,
             inputs=results_table,
             outputs=csv_download
         )
-        
+
     return app
 
 if __name__ == "__main__":
     app = create_app()
     app.launch(
-        share=GUISettings.SHARE_PUBLIC, 
-        server_name=GUISettings.SERVER_NAME, 
-        server_port=GUISettings.SERVER_PORT, 
+        share=GUISettings.SHARE_PUBLIC,
+        server_name=GUISettings.SERVER_NAME,
+        server_port=GUISettings.SERVER_PORT,
         theme=gr.themes.Soft(),
         inbrowser=True
     )

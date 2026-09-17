@@ -1,8 +1,8 @@
-import os
-import json
 import csv
+import json
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Any, Dict, List, Optional
+
 import numpy as np
 import scipy.signal as signal
 

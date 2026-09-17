@@ -1,6 +1,7 @@
 import os
 import random
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
+
 import numpy as np
 import scipy.signal as signal
 

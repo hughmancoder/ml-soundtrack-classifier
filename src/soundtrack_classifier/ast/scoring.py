@@ -1,9 +1,8 @@
-import os
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any
-import numpy as np
-import soundfile as sf
+from typing import List, Optional, Tuple
+
 import librosa
+import numpy as np
 import torch
 from tqdm import tqdm
 
@@ -105,9 +104,7 @@ class ContinuousFilmScorer:
         y_48k = librosa.resample(y, orig_sr=native_sr, target_sr=self.sr_clap, res_type="soxr_vhq")
 
         win_24k = int(self.window_sec * self.sr_mert)
-        hop_24k = int(self.hop_sec * self.sr_mert)
         win_48k = int(self.window_sec * self.sr_clap)
-        hop_48k = int(self.hop_sec * self.sr_clap)
 
         # Generate window slices
         clips_24k: List[np.ndarray] = []

@@ -1,14 +1,14 @@
 import os
-import torch
-import numpy as np
+
 import librosa
-from nnAudio.features.cqt import CQT2010v2, CQT1992v2
+import torch
+from nnAudio.features.cqt import CQT1992v2, CQT2010v2
 
 
 def compute_hpss_from_spec(
-    spec: torch.Tensor, 
-    kernel_time: int = 31, 
-    kernel_freq: int = 31, 
+    spec: torch.Tensor,
+    kernel_time: int = 31,
+    kernel_freq: int = 31,
     power: float = 2.0
 ) -> torch.Tensor:
     """
@@ -98,7 +98,7 @@ class CQTExtractor:
         self.n_bins = n_bins
         self.bins_per_octave = bins_per_octave
         self.fmin = fmin
-        
+
         # Initialize nnAudio CQT2010v2 (or fallback to CQT1992v2)
         try:
             self.cqt_layer = CQT2010v2(
@@ -133,7 +133,7 @@ class CQTExtractor:
         if audio_tensor.dim() == 1:
             was_1d = True
             audio_tensor = audio_tensor.unsqueeze(0)
-            
+
         audio_tensor = audio_tensor.to(self.device)
         spec = self.cqt_layer(audio_tensor) # (B, F, T)
 

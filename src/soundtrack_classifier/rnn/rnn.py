@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
-from nnAudio.features.cqt import CQT2010v2, CQT1992v2
+from nnAudio.features.cqt import CQT1992v2, CQT2010v2
+
 from soundtrack_classifier.features.cqt import compute_hpss_from_spec
 
 
@@ -24,7 +25,7 @@ class ConvBlock(nn.Module):
 class ArchivalInstrumentCRNN(nn.Module):
     """
     Convolutional Recurrent Neural Network (CRNN) tailored for archival optical soundtracks.
-    
+
     Key Features:
     - 2-Channel Front-End:
         Channel 0 (Harmonic): continuous pitched instruments (erhu, dizi, sheng, strings).
@@ -114,20 +115,20 @@ class ArchivalInstrumentCRNN(nn.Module):
             (Batch, 2, n_bins, time_frames)
         """
         specs = self.cqt(waveforms) # (B, F, T)
-        
+
         if self.in_channels == 2:
             hpss_specs = compute_hpss_from_spec(specs) # (B, 2, F, T)
         else:
             hpss_specs = specs.unsqueeze(1) # (B, 1, F, T)
-            
+
         # Logarithmic compression
         features = torch.log1p(10.0 * hpss_specs)
-        
+
         # Feature Standardisation (Instance z-score per channel)
         f_mean = features.mean(dim=(-2, -1), keepdim=True)
         f_std = features.std(dim=(-2, -1), keepdim=True).clamp(min=1e-5)
         features = (features - f_mean) / f_std
-        
+
         return features
 
     def forward(self, x: torch.Tensor, return_frames: bool = False) -> torch.Tensor:

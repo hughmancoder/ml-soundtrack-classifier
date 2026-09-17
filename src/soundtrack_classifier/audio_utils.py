@@ -1,10 +1,11 @@
 import os
 import subprocess
-import librosa
-import soundfile as sf
-import numpy as np
-
 from typing import Optional
+
+import librosa
+import numpy as np
+import soundfile as sf
+
 
 def extract_audio_from_video(video_path: str, output_audio_path: str, sr: Optional[int] = None):
     """
@@ -14,9 +15,9 @@ def extract_audio_from_video(video_path: str, output_audio_path: str, sr: Option
     """
     if not os.path.exists(video_path):
         raise FileNotFoundError(f"Video file not found: {video_path}")
-        
+
     print(f"Extracting audio from {video_path} to {output_audio_path}...")
-    
+
     command = [
         "ffmpeg",
         "-y",               # Overwrite output
@@ -30,7 +31,7 @@ def extract_audio_from_video(video_path: str, output_audio_path: str, sr: Option
         "-ac", "1",         # Mono
         output_audio_path
     ])
-    
+
     subprocess.run(command, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     print("Extraction complete.")
 

@@ -12,15 +12,16 @@ Usage:
     PYTHONPATH=src python src/train_rnn.py --resume models/crnn.pt
 """
 
-import os
 import argparse
 import csv
-import yaml
+import os
+from typing import List, Optional, Tuple
+
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import Optional, Union, List, Tuple
+import yaml
 from torch.utils.data import DataLoader, Subset
 
 from soundtrack_classifier.rnn.dataset import ArchivalSoundtrackRNNDataset
@@ -31,7 +32,7 @@ class FocalLoss(nn.Module):
     """
     Focal Loss for multi-class audio classification.
     FL(p_t) = -alpha_t * (1 - p_t)^gamma * log(p_t)
-    
+
     Down-weights easy background/dominant class frames while focusing learning
     on hard, sparsely occurring instrument events.
     """
@@ -53,7 +54,7 @@ class FocalLoss(nn.Module):
         )
         pt = torch.exp(-ce_loss_unweighted)
         modulating_factor = (1.0 - pt) ** self.gamma
-        
+
         # 2. Weighted CE to scale gradients
         ce_loss_weighted = F.cross_entropy(
             logits, targets, reduction="none", weight=self.weight
@@ -165,13 +166,13 @@ def train_rnn(
     # 2. Dataset Setup
     crnn_train_cfg = config.get("crnn", {}).get("training", {})
     data_dir = (
-        config.get("paths", {}).get("data_dir") or 
-        config.get("crnn", {}).get("paths", {}).get("data_dir") or 
+        config.get("paths", {}).get("data_dir") or
+        config.get("crnn", {}).get("paths", {}).get("data_dir") or
         config.get("cnn", {}).get("paths", {}).get("data_dir", "data/train")
     )
     precompute_flag = (
-        precompute_features_override 
-        if precompute_features_override is not None 
+        precompute_features_override
+        if precompute_features_override is not None
         else crnn_train_cfg.get("precompute_features", True)
     )
     features_dir = features_dir_override or crnn_train_cfg.get("features_dir", "data/features_cqt_hpss")
@@ -207,7 +208,7 @@ def train_rnn(
     train_labels_list = [full_dataset.labels[i] for i in train_dataset.indices]
     class_counts = np.bincount(train_labels_list, minlength=num_classes)
     class_counts = np.maximum(class_counts, 1)
-    
+
     total_train_samples = len(train_labels_list)
     class_weights = total_train_samples / (num_classes * class_counts)
     weights_tensor = torch.tensor(class_weights, dtype=torch.float32, device=device)
