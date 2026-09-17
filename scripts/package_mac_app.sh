@@ -22,7 +22,7 @@ else
 fi
 
 # Ensure model weights exist
-MODEL_PATH="models/resnet18_cnn_best.pt"
+MODEL_PATH="models/ast_probing_head.pt"
 if [ ! -f "$MODEL_PATH" ]; then
     echo "Warning: $MODEL_PATH not found! Falling back to any available .pt model in models/"
     MODEL_PATH=$(ls -1 models/*.pt 2>/dev/null | head -n 1)
@@ -47,6 +47,35 @@ if os.path.exists(p):
             f.write(c.replace(target, repl))
 "
 
+# Mitigate known PyInstaller NameError bug in torch._numpy._ufuncs on Python 3.12
+python3 -c "
+import os
+p = 'venv/lib/python3.12/site-packages/torch/_numpy/_ufuncs.py'
+if os.path.exists(p):
+    with open(p, 'r') as f:
+        c = f.read()
+    c = c.replace('vars()[name] = deco_binary_ufunc(ufunc)', 'globals()[name] = deco_binary_ufunc(ufunc)')
+    c = c.replace('vars()[name] = deco_unary_ufunc(ufunc)', 'globals()[name] = deco_unary_ufunc(ufunc)')
+    with open(p, 'w') as f:
+        f.write(c)
+"
+
+# Mitigate known PyInstaller FileNotFoundError in gradio.component_meta.create_or_modify_pyi
+python3 -c "
+import os
+p = 'venv/lib/python3.12/site-packages/gradio/component_meta.py'
+if os.path.exists(p):
+    with open(p, 'r') as f:
+        c = f.read()
+    if 'if getattr(sys, \"frozen\", False):' not in c:
+        target = 'def create_or_modify_pyi(\n    component_class: type, class_name: str, events: list[str | EventListener]\n):'
+        repl = target + '\n    import sys\n    if getattr(sys, \"frozen\", False):\n        return'
+        c = c.replace(target, repl)
+        c = c.replace('source_code = source_file.read_text(encoding=\"utf-8\")', 'if not source_file.is_file():\n        return\n    try:\n        source_code = source_file.read_text(encoding=\"utf-8\")\n    except Exception:\n        return')
+        with open(p, 'w') as f:
+            f.write(c)
+"
+
 # Run PyInstaller build
 echo "Running PyInstaller..."
 $PYINSTALLER --clean --noconfirm packaging/soundtrack_classifier.spec
@@ -63,7 +92,7 @@ cp -R dist/SoundtrackClassifier.app "$DIST_DIR/"
 # Ensure models directory and config are included in both .app and package
 mkdir -p "$DIST_DIR/SoundtrackClassifier.app/Contents/MacOS/models"
 mkdir -p "$DIST_DIR/SoundtrackClassifier.app/Contents/MacOS/config"
-cp "$MODEL_PATH" "$DIST_DIR/SoundtrackClassifier.app/Contents/MacOS/models/"
+cp models/*.pt "$DIST_DIR/SoundtrackClassifier.app/Contents/MacOS/models/" 2>/dev/null || true
 cp config/config.yaml "$DIST_DIR/SoundtrackClassifier.app/Contents/MacOS/config/"
 
 # Copy gradio source files into Contents/Frameworks/gradio to satisfy dynamic inspections
